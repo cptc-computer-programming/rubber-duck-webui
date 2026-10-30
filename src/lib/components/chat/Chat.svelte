@@ -471,6 +471,13 @@
 
 	// Chat Input
 	let prompt = '';
+
+	// RUBBER DUCK: Class and Assignment Selection
+
+    let selectedClassId = '';
+    let selectedAssignmentId = ''; 
+
+
 	let chatFiles = [];
 	let files: any[] = [];
 	let params = {};
