@@ -456,6 +456,7 @@
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
+		
 	} else {
 		chatOwner = null;
 	}
