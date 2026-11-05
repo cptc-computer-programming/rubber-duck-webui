@@ -4201,11 +4201,19 @@
 
 				...$derived(selectedClassId && selectedAssignmentId ?
 					{
-						rubber_duck: {
+						// Send the selected class and assignment to the backend
+
+						rubber_duck_context: {
+
+							// Send the class ID
+
 							class_id: selectedClassId,
+							
+							 // Send the assignment ID
 							assignment_id: selectedAssignmentId
 						}
 					}
+					 // If one is missing, do not add this information
 					: {}
 				)
 				...(messages.length > 0 ? { messages } : {}),
