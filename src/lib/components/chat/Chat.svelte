@@ -4196,6 +4196,18 @@
 			{
 				stream: stream,
 				model: model.id,
+
+				// RUBBER DUCK : Send selected class and assignment
+
+				...$derived(selectedClassId && selectedAssignmentId ?
+					{
+						rubber_duck: {
+							class_id: selectedClassId,
+							assignment_id: selectedAssignmentId
+						}
+					}
+					: {}
+				)
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
 					...$settings?.params,
