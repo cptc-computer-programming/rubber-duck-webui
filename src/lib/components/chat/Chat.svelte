@@ -464,6 +464,7 @@
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
+		
 	} else {
 		chatOwner = null;
 	}
@@ -479,6 +480,13 @@
 
 	// Chat Input
 	let prompt = '';
+
+	// RUBBER DUCK: Class and Assignment Selection
+
+    let selectedClassId = '';
+    let selectedAssignmentId = ''; 
+
+
 	let chatFiles = [];
 	let files: any[] = [];
 	let params = {};
@@ -4196,6 +4204,26 @@
 			{
 				stream: stream,
 				model: model.id,
+
+				// RUBBER DUCK : Send selected class and assignment
+
+				...$derived(selectedClassId && selectedAssignmentId ?
+					{
+						// Send the selected class and assignment to the backend
+
+						rubber_duck_context: {
+							
+							// Send the class ID
+
+							class_id: selectedClassId,
+							
+							 // Send the assignment ID
+							assignment_id: selectedAssignmentId
+						}
+					}
+					// if one value is missing. do not add the context.	
+					: {}
+				)
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
 					...$settings?.params,
