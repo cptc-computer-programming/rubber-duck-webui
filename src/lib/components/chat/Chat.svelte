@@ -140,7 +140,7 @@
 	import XMark from '../icons/XMark.svelte';
 	import EmbeddedChatHistoryDropdown from './EmbeddedChatHistoryDropdown.svelte';
 	import InputVariablesModal from './MessageInput/InputVariablesModal.svelte';
-	import ThemeToggle from '../common/ThemeToggle.svelte';
+	import ThemeToggle from './ThemeToggle.svelte';
 
 	export let chatIdProp = '';
 	export let embedded = false;
@@ -214,11 +214,11 @@
 	$: backgroundImage = embedded
 		? null
 		: ($selectedFolder as { meta?: { background_image_url?: string } } | null)?.meta
-				?.background_image_url ||
-			atSelectedModel?.info?.meta?.background_image_url ||
-			$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
-				?.background_image_url ||
-			($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
+			?.background_image_url ||
+		atSelectedModel?.info?.meta?.background_image_url ||
+		$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
+			?.background_image_url ||
+		($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
 
 	let atSelectedModel: Model | undefined;
 	let selectedModelIds: string[] = [];
@@ -661,27 +661,27 @@
 	$: pendingAskUser = findPendingAskUser(history);
 	$: savedAskUserPrompt = pendingAskUser
 		? {
-				show: true,
-				questions: Array.isArray(pendingAskUser.args?.questions)
-					? pendingAskUser.args.questions
-					: [],
-				allowOther: pendingAskUser.args?.allow_other !== false,
-				timeoutMs: null,
-				onConfirm: (value) => {
-					void answerPendingAskUser(
-						pendingAskUser.message.id,
-						pendingAskUser.call.call_id || pendingAskUser.call.id,
-						value?.answers ?? {},
-						false
-					);
-				},
-				onCancel: () => {
-					void rejectPendingAskUser(
-						pendingAskUser.message.id,
-						pendingAskUser.call.call_id || pendingAskUser.call.id
-					);
-				}
+			show: true,
+			questions: Array.isArray(pendingAskUser.args?.questions)
+				? pendingAskUser.args.questions
+				: [],
+			allowOther: pendingAskUser.args?.allow_other !== false,
+			timeoutMs: null,
+			onConfirm: (value) => {
+				void answerPendingAskUser(
+					pendingAskUser.message.id,
+					pendingAskUser.call.call_id || pendingAskUser.call.id,
+					value?.answers ?? {},
+					false
+				);
+			},
+			onCancel: () => {
+				void rejectPendingAskUser(
+					pendingAskUser.message.id,
+					pendingAskUser.call.call_id || pendingAskUser.call.id
+				);
 			}
+		}
 		: null;
 
 	$: socketAskUserPrompt = ((interaction: BrowserInteraction | undefined) => ({
@@ -2178,9 +2178,9 @@
 				[$chatId]: (q[$chatId] ?? []).map((message) =>
 					(message.files ?? []).some((item) => item.itemId === file.itemId)
 						? {
-								...message,
-								files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
-							}
+							...message,
+							files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
+						}
 						: message
 				)
 			}));
@@ -2242,9 +2242,9 @@
 		const autoTags = $settings?.autoTags ?? true;
 		const title = autoTitle
 			? await generateTitle(token, modelId, messages, _chatId).catch((error) => {
-					console.error('Could not generate voice chat title', error);
-					return null;
-				})
+				console.error('Could not generate voice chat title', error);
+				return null;
+			})
 			: null;
 		const savedChat = await getChatById(token, _chatId);
 		if (savedChat.title === initialTitle) {
@@ -2366,9 +2366,9 @@
 						const state = getBridgeTurnState(message);
 						const speech = !spoken
 							? (voice?.speech ?? [])
-									.map((item: any) => item.transcript)
-									.filter(Boolean)
-									.join('\n')
+								.map((item: any) => item.transcript)
+								.filter(Boolean)
+								.join('\n')
 							: '';
 						let content = visibleMessageText(message);
 						if (message.role === 'assistant') {
@@ -3779,8 +3779,8 @@
 		const lastMessage = history.currentId ? history.messages[history.currentId] : null;
 		const isGenerating = bridgeRequest
 			? createMessagesList(history, bridgeRequest.userMessageId).some(
-					(message) => message.role === 'assistant' && !message.done
-				)
+				(message) => message.role === 'assistant' && !message.done
+			)
 			: lastMessage && lastMessage.role === 'assistant' && !lastMessage.done;
 
 		if (isGenerating) {
@@ -4212,16 +4212,16 @@
 				terminal_id: terminalEnabled && $selectedTerminalId ? $selectedTerminalId : undefined,
 				tool_servers: $config?.features?.enable_tool_servers
 					? [
-							...($toolServers ?? []).filter(
-								(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
-							),
-							// Direct terminal servers — always included when enabled (not routed through selectedToolIds)
-							...(terminalEnabled
-								? ($terminalServers ?? [])
-										.filter((server) => !server.id)
-										.map((server) => ({ ...server, is_terminal: true }))
-								: [])
-						]
+						...($toolServers ?? []).filter(
+							(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
+						),
+						// Direct terminal servers — always included when enabled (not routed through selectedToolIds)
+						...(terminalEnabled
+							? ($terminalServers ?? [])
+								.filter((server) => !server.id)
+								.map((server) => ({ ...server, is_terminal: true }))
+							: [])
+					]
 					: [],
 				features: getFeatures(),
 				variables: {
@@ -4252,9 +4252,9 @@
 							(userMessage?.parentId ?? null) === null &&
 							createMessagesList(_history, responseMessageId).length === 2))
 						? {
-								title_generation: $settings?.title?.auto ?? true,
-								tags_generation: $settings?.autoTags ?? true
-							}
+							title_generation: $settings?.title?.auto ?? true,
+							tags_generation: $settings?.autoTags ?? true
+						}
 						: {}),
 					follow_up_generation: $settings?.autoFollowUps ?? true
 				}
@@ -4455,16 +4455,16 @@
 			await sendMessage(history, userMessage.id, {
 				...(suggestionPrompt
 					? {
-							messages: createMessagesList(history, message.id),
-							regenerationPrompt: suggestionPrompt
-						}
+						messages: createMessagesList(history, message.id),
+						regenerationPrompt: suggestionPrompt
+					}
 					: {}),
 				...((userMessage?.models ?? [...selectedModels]).length > 1
 					? {
-							// If multiple models are selected, use the model from the message
-							modelId: message.model,
-							modelIdx: message.modelIdx
-						}
+						// If multiple models are selected, use the model from the message
+						modelId: message.model,
+						modelIdx: message.modelIdx
+					}
 					: {})
 			});
 		}
@@ -4923,10 +4923,10 @@
 			<div class="text-sm text-gray-500">
 				<div class="font-medium break-all">{interaction.data.tool_call.name}</div>
 				<pre class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(
-						interaction.data.tool_call.arguments,
-						null,
-						2
-					)}</pre>
+					interaction.data.tool_call.arguments,
+					null,
+					2
+				)}</pre>
 			</div>
 		</EventConfirmDialog>
 	{/key}
@@ -5048,6 +5048,40 @@
 						/>
 					{/if}
 					<div id="chat-pane" class="flex flex-col flex-auto z-10 w-full @container overflow-auto">
+
+						<!-- Assignment Selection Bar & Theme Toggle -->
+						<div
+							class="flex items-center justify-between px-4 py-2 border-b
+		       border-gray-200 dark:border-gray-800 bg-white/60
+		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
+						>
+							<div class="flex items-center gap-2">
+								<label
+									for="assignment-select"
+									class="text-xs font-medium text-gray-500 dark:text-gray-400"
+								>
+									Assignment:
+								</label>
+								<select
+									id="assignment-select"
+									bind:value={selectedAssignmentId}
+									class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+			       bg-gray-50 dark:bg-gray-800
+			       border border-gray-300 dark:border-gray-700
+			       text-gray-900 dark:text-gray-100
+			       focus:outline-none focus:ring-1 focus:ring-blue-500"
+								>
+									<option value="">Select Assignment</option>
+									{#each assignments as assignment}
+										<option value={assignment.id}>{assignment.title}</option>
+									{/each}
+								</select>
+							</div>
+
+							<!-- Injecting the dark/light mode toggle here -->
+							<ThemeToggle />
+						</div>
+
 						{#if ($settings?.landingPageMode === 'chat' && !$selectedFolder) || createMessagesList(history, history.currentId).length > 0}
 							<div
 								class=" pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
@@ -5367,8 +5401,8 @@
 </div>
 
 <style>
-	::-webkit-scrollbar {
-		height: 0.5rem;
-		width: 0.5rem;
-	}
+    ::-webkit-scrollbar {
+        height: 0.5rem;
+        width: 0.5rem;
+    }
 </style>
