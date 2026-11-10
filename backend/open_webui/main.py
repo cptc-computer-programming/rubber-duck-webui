@@ -1148,6 +1148,11 @@ async def chat_completion(
     form_data: dict,
     user=Depends(get_verified_user),
 ):
+
+    context_block = form_data.pop('context', {}) or {}
+    class_id = context_block.get('class_id')
+    assignment_id = context_block.get('assignment_id')
+
     if not request.app.state.MODELS:
         await get_all_models(request, user=user)
 
@@ -1337,6 +1342,10 @@ async def chat_completion(
             'features': form_data.get('features', {}),
             'variables': form_data.get('variables', {}),
             'chat_variables': chat_variables,
+            #added expected fields to metadata dictionary
+            'class_id': class_id,
+            'assignment_id': assignment_id,
+
             # Later requests rebuild generated instructions from this original chat context.
             'chat_context': {
                 **copy.deepcopy(getattr(request.state, 'chat_context', None) or {}),
@@ -1345,6 +1354,9 @@ async def chat_completion(
                 ),
                 'params': {'system': request_params['system']} if 'system' in request_params else {},
                 'chat_variables': copy.deepcopy(chat_variables),
+                #adds the class and assignment id to the chat history
+                'class_id': class_id,
+                'assignment_id': assignment_id,
             },
             'model': model,
             'direct': model_item.get('direct', False),
