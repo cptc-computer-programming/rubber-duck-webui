@@ -4206,7 +4206,7 @@
 
 				// RUBBER DUCK : Send selected class and assignment
 
-				...(selectedClassId && selectedAssignmentId ?
+				...(selectedAssignmentId ?
 					{
 						// Send the selected class and assignment to the backend
 
