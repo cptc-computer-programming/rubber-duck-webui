@@ -1,0 +1,103 @@
+{
+    "stream": true,
+    "model": "llama3.2:3b",
+    "params": {
+        "tool_approval_mode": "full"
+    },
+    "tool_servers": [],
+    "features": {
+        "voice": false,
+        "image_generation": false,
+        "code_interpreter": false,
+        "web_search": false,
+        "memory": true
+    },
+    "variables": {
+        "{{USER_NAME}}": "Software Project",
+        "{{USER_EMAIL}}": "rachel.king@cptc.edu",
+        "{{USER_LOCATION}}": "Unknown",
+        "{{CURRENT_DATETIME}}": "2026-10-22 14:13:52",
+        "{{CURRENT_DATE}}": "2026-10-22",
+        "{{CURRENT_TIME}}": "14:13:52",
+        "{{CURRENT_WEEKDAY}}": "Thursday",
+        "{{CURRENT_TIMEZONE}}": "America/Los_Angeles",
+        "{{USER_LANGUAGE}}": "en-US"
+    },
+    "chat_variables": {},
+    "model_item": {
+        "id": "llama3.2:3b",
+        "name": "llama3.2:3b",
+        "object": "model",
+        "created": 0,
+        "owned_by": "ollama",
+        "ollama": {
+            "name": "llama3.2:3b",
+            "model": "llama3.2:3b",
+            "modified_at": "2026-10-14T06:16:10.261570978Z",
+            "size": 2019393189,
+            "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+            "details": {
+                "parent_model": "",
+                "format": "gguf",
+                "family": "llama",
+                "families": [
+                    "llama"
+                ],
+                "parameter_size": "3.2B",
+                "quantization_level": "Q4_K_M",
+                "context_length": 131072,
+                "embedding_length": 3072
+            },
+            "capabilities": [
+                "completion",
+                "tools"
+            ],
+            "connection_type": "local",
+            "urls": [
+                0
+            ],
+            "expires_at": 1792734793
+        },
+        "loaded": true,
+        "connection_type": "local",
+        "tags": [],
+        "actions": [],
+        "filters": []
+    },
+    "session_id": "F0e98IuLmEvMEVX9AAAD",
+    "id": "c9472aaf-ec01-4e51-9b60-e1fb4b8dccf1",
+    "message_ids": [
+        {
+            "model_id": "llama3.2:3b",
+            "message_id": "c9472aaf-ec01-4e51-9b60-e1fb4b8dccf1",
+            "modelIdx": 0
+        }
+    ],
+    "parent_id": null,
+    "user_message": {
+        "id": "528fc05a-bf58-4be7-8b4e-94be88c19146",
+        "parentId": null,
+        "childrenIds": [
+            "c9472aaf-ec01-4e51-9b60-e1fb4b8dccf1"
+        ],
+        "role": "user",
+        "content": "help me with my hw",
+        "timestamp": 1792703632,
+        "models": [
+            "llama3.2:3b"
+        ]
+    },
+    "background_tasks": {
+        "title_generation": true,
+        "tags_generation": true,
+        "follow_up_generation": true
+    },
+    // if the user chooses anything from the dropdowns, this is what the frontend will provide
+    // in the completions API request body
+    "rubber_duck_context": {
+        // class
+        "class_id": "cpw-152", 
+        // assignment
+        "assignment_id": "cp4-joins",
+    }
+}

@@ -483,8 +483,7 @@
 
 	// RUBBER DUCK: Class and Assignment Selection
 
-    let selectedClassId = '';
-    let selectedAssignmentId = ''; 
+    let selectedClassId = ''; 
 
 
 	let chatFiles = [];
@@ -4207,7 +4206,7 @@
 
 				// RUBBER DUCK : Send selected class and assignment
 
-				...$derived(selectedClassId && selectedAssignmentId ?
+				...(selectedClassId && selectedAssignmentId ?
 					{
 						// Send the selected class and assignment to the backend
 
@@ -4223,7 +4222,7 @@
 					}
 					// if one value is missing. do not add the context.	
 					: {}
-				)
+				),
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
 					...$settings?.params,
