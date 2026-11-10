@@ -111,6 +111,8 @@ If your containers are already built and you want to stand up the app:
 docker compose up -d
 ```
 
+Run without `-d` if you want to see logs!
+
 ### Rebuild one container
 
 If you are making edits to the web app, you don't want to have to rebuild ollama, so use:
