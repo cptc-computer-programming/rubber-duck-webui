@@ -5057,18 +5057,25 @@
 					<div id="chat-pane" class="flex flex-col flex-auto z-10 w-full @container overflow-auto">
 
 						<!-- Assignment Selection Bar -->
+
+                        <!-- This div creates the assignment selection bar. -->
 						<div
 							class="flex items-center justify-between px-4 py-2 border-b
 		       border-gray-200 dark:border-gray-800 bg-white/60
 		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
+
+                        <!-- This label shows the word Assignment. -->
 							<label
 								for="assignment-select"
 								class="text-xs font-medium text-gray-500 dark:text-gray-400"
 							>
 								Assignment:
 							</label>
-							<select
+
+                       <!-- This drowpdown lets the student choose an assignment. -->
+
+<select
 								id="assignment-select"
 								bind:value={selectedAssignmentId}
 								class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
