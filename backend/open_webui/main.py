@@ -1373,6 +1373,29 @@ async def chat_completion(
                 'model_controls': model_controls,
             },
         }
+        #Start Interceptor Code
+
+        # If both a classroom and an assignment identifier are provided,
+        # choose a specific persona and update the instructions sent to Ollama.
+        if class_id and assignment_id:
+            
+            # Crafts the custom system prompt text based on the ids.
+            custom_persona_prompt = f"You are a specialized learning assistant for Class {class_id}. Guide the student carefully through the criteria for Assignment {assignment_id}."
+            
+            # Ensure the system configuration list contains a place for system instructions.
+            if 'params' not in form_data:
+                form_data['params'] = {}
+                
+            # Read any default system prompt that already exists in the request params.
+            existing_system_prompt = form_data['params'].get('system', '')
+
+            # or assign it directly if no prior prompt exists.
+            if existing_system_prompt:
+                form_data['params']['system'] = f"{custom_persona_prompt}\n{existing_system_prompt}"
+            else:
+                form_data['params']['system'] = custom_persona_prompt
+
+        #End Interceptor Code
 
         if is_new_chat:
             metadata['chat_id'] = str(uuid4())
