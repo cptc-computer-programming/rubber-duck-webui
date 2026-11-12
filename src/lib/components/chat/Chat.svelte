@@ -160,10 +160,33 @@
 	// tracks active assignment context for current session.
 	export let selectedAssignmentId = '';
 
-	// Temp assignment list
-	let assignments = [
-		{ id: 'sql-joins', title: 'SQL Joins'}
-	];
+	let classes = [{
+		id: 'cpw-152', title: 'Database Systems'
+	}, {	
+		id: 'cpw-219', title: 'Web Development'
+	}, {
+		id: 'cpw-245', title: 'Data Structures'
+	}]
+
+ // Temp assignment list
+let assignments = [
+    // Database Systems - CPW 152
+
+    { id: 'sql-joins', title: 'SQL Joins', classId: 'cpw-152' },
+    { id: 'sql-queries', title: 'SQL Queries', classId: 'cpw-152' },
+
+    // Web Development - CPW 219
+
+    { id: 'mvc-project', title: 'MVC Project', classId: 'cpw-219' },
+    { id: 'model-binding', title: 'Model Binding', classId: 'cpw-219' },
+
+    // Data Structures - CPW 245
+
+    { id: 'arrays', title: 'Arrays', classId: 'cpw-245' },
+    { id: 'sorting', title: 'Sorting', classId: 'cpw-245' }
+];
+
+	
 
 	let loading = true;
 	$: chatContainerId = embedded ? 'note-chat-container' : 'chat-container';
