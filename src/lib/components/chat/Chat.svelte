@@ -508,6 +508,13 @@ let assignments = [
 
     let selectedClassId = ''; 
 
+ //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
+ 
+$: filteredAssignments = assignments.filter(
+    (assignment) => assignment.classId === selectedClassId
+);
+
+
 
 	let chatFiles = [];
 	let files: any[] = [];
