@@ -158,6 +158,7 @@
 	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null = null;
 
 	// tracks active assignment context for current session.
+	
 	export let selectedAssignmentId = '';
 
 	let classes = [{
@@ -509,7 +510,7 @@ let assignments = [
     let selectedClassId = ''; 
 
  //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
- 
+
 $: filteredAssignments = assignments.filter(
     (assignment) => assignment.classId === selectedClassId
 );
@@ -5119,8 +5120,36 @@ $: filteredAssignments = assignments.filter(
 		       border-gray-200 dark:border-gray-800 bg-white/60
 		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
+
+
+
+<!-- RUBBER DUCK: CLASS SELECTION -->
+
+<div class="flex items-center gap-2 mb-2">
+    <label for="class-select" class="text-xs sm:text-sm">
+        Class:
+    </label>
+
+    <select
+        id="class-select"
+        bind:value={selectedClassId}
+        class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+        bg-gray-50 dark:bg-gray-800
+        border border-gray-300 dark:border-gray-700
+        text-gray-900 dark:text-gray-100"
+    >
+        <option value="">Select Class</option>
+        {#each classes as classItem}
+            <option value={classItem.id}>
+                {classItem.title}
+            </option>
+        {/each}
+    </select>
+</div>
+
 							<label
 								for="assignment-select"
+
 								class="text-xs font-medium text-gray-500 dark:text-gray-400"
 							>
 								Assignment:
