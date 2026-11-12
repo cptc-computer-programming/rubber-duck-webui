@@ -158,12 +158,36 @@
 	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null = null;
 
 	// tracks active assignment context for current session.
+	
 	export let selectedAssignmentId = '';
 
-	// Temp assignment list
-	let assignments = [
-		{ id: 'sql-joins', title: 'SQL Joins'}
-	];
+	let classes = [{
+		id: 'cpw-152', title: 'Database Systems'
+	}, {	
+		id: 'cpw-219', title: 'Web Development'
+	}, {
+		id: 'cpw-245', title: 'Data Structures'
+	}]
+
+ // Temp assignment list
+let assignments = [
+    // Database Systems - CPW 152
+
+    { id: 'sql-joins', title: 'SQL Joins', classId: 'cpw-152' },
+    { id: 'sql-queries', title: 'SQL Queries', classId: 'cpw-152' },
+
+    // Web Development - CPW 219
+
+    { id: 'mvc-project', title: 'MVC Project', classId: 'cpw-219' },
+    { id: 'model-binding', title: 'Model Binding', classId: 'cpw-219' },
+
+    // Data Structures - CPW 245
+
+    { id: 'arrays', title: 'Arrays', classId: 'cpw-245' },
+    { id: 'sorting', title: 'Sorting', classId: 'cpw-245' }
+];
+
+	
 
 	let loading = true;
 	$: chatContainerId = embedded ? 'note-chat-container' : 'chat-container';
@@ -464,6 +488,7 @@
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
+		
 	} else {
 		chatOwner = null;
 	}
@@ -479,6 +504,19 @@
 
 	// Chat Input
 	let prompt = '';
+
+	// RUBBER DUCK: Class and Assignment Selection
+
+    let selectedClassId = ''; 
+
+ //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
+
+$: filteredAssignments = assignments.filter(
+    (assignment) => assignment.classId === selectedClassId
+);
+
+
+
 	let chatFiles = [];
 	let files: any[] = [];
 	let params = {};
@@ -4196,6 +4234,26 @@
 			{
 				stream: stream,
 				model: model.id,
+
+				// RUBBER DUCK : Send selected class and assignment
+
+				...(selectedAssignmentId ?
+					{
+						// Send the selected class and assignment to the backend
+
+						rubber_duck_context: {
+							
+							// Send the class ID
+
+							class_id: selectedClassId,
+							
+							 // Send the assignment ID
+							assignment_id: selectedAssignmentId
+						}
+					}
+					// if one value is missing. do not add the context.	
+					: {}
+				),
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
 					...$settings?.params,
@@ -5062,8 +5120,36 @@
 		       border-gray-200 dark:border-gray-800 bg-white/60
 		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
+
+
+
+<!-- RUBBER DUCK: CLASS SELECTION -->
+
+<div class="flex items-center gap-2 mb-2">
+    <label for="class-select" class="text-xs sm:text-sm">
+        Class:
+    </label>
+
+    <select
+        id="class-select"
+        bind:value={selectedClassId}
+        class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+        bg-gray-50 dark:bg-gray-800
+        border border-gray-300 dark:border-gray-700
+        text-gray-900 dark:text-gray-100"
+    >
+        <option value="">Select Class</option>
+        {#each classes as classItem}
+            <option value={classItem.id}>
+                {classItem.title}
+            </option>
+        {/each}
+    </select>
+</div>
+
 							<label
 								for="assignment-select"
+
 								class="text-xs font-medium text-gray-500 dark:text-gray-400"
 							>
 								Assignment:
