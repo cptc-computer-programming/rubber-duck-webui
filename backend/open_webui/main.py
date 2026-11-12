@@ -1148,6 +1148,7 @@ async def _load_assignment_markdown(assignment_id: str) -> str:
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
 
     # Resolve both paths before comparing them to protect against traversal or symlinks.
+    # Path resolves to the data directory
     assignments_dir = (CACHE_DIR / 'assignments').resolve()
     assignment_path = (assignments_dir / f'{assignment_id}.md').resolve()
     if assignment_path.parent != assignments_dir:
