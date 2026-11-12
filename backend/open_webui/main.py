@@ -1148,8 +1148,9 @@ async def _load_assignment_markdown(assignment_id: str) -> str:
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
 
     # Resolve both paths before comparing them to protect against traversal or symlinks.
+    # Something is wrong with how the path is being built
     assignments_dir = ('assignments').resolve()
-    assignment_path = (assignments_dir / f'{assignment_id}.md').resolve()
+    assignment_path = (assignments / f'{assignment_id}.md').resolve()
     print("DEBUG kkkk: Assignment path: ", assignment_path)
     if assignment_path.parent != assignments_dir:
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
@@ -1179,10 +1180,14 @@ async def chat_completion(
     form_data: dict,
     user=Depends(get_verified_user),
 ):
-
+    print("DEBUG kkkk form data", form_data)
+    rubber_duck_context = form_data.pop('rubber_duck_context', {}) or {}
     context_block = form_data.pop('context', {}) or {}
-    class_id = context_block.get('class_id')
-    assignment_id = context_block.get('assignment_id')
+    class_id = rubber_duck_context.get('class_id')
+    assignment_id = rubber_duck_context.get('assignment_id')
+
+    print("DEBUG kkkk class and assignment id at API call", class_id, assignment_id)
+
 
     if not request.app.state.MODELS:
         await get_all_models(request, user=user)
@@ -1404,8 +1409,9 @@ async def chat_completion(
                 'model_controls': model_controls,
             },
         }
+        print("DEBUG kkkk meta dictionary", metadata)
         #Start Interceptor Code
-
+        print("DEBUG kkkk class and assignment id", class_id, assignment_id)
         # If both a classroom and an assignment identifier are provided,
         # choose a specific persona and update the instructions sent to Ollama.
         if class_id and assignment_id:
