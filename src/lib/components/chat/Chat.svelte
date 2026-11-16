@@ -5061,6 +5061,12 @@
 		       border-gray-200 dark:border-gray-800 bg-white/60
 		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
+							{#if selectedAssignmentId && createMessagesList(history, history.currentId).length > 0}
+								<div class="text-xs sm:text-sm text-gray-900 dark:text-gray-100">
+									<span class="font-medium text-gray-500 dark:text-gray-400">Assignment:</span>
+									{assignments.find((a) => a.id === selectedAssignmentId)?.title ?? selectedAssignmentId}
+								</div>
+							{:else}
 							<label
 								for="assignment-select"
 								class="text-xs font-medium text-gray-500 dark:text-gray-400"
@@ -5082,6 +5088,7 @@
 									<option value={assignment.id}>{assignment.title}</option>
 								{/each}
 							</select>
+							{/if}
 						</div>
 						{#if ($settings?.landingPageMode === 'chat' && !$selectedFolder) || createMessagesList(history, history.currentId).length > 0}
 							<div
