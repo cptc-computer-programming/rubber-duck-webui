@@ -1515,7 +1515,6 @@
 	"LiteLLM": "LiteLLM",
 	"Live": "实时",
 	"llama.cpp": "llama.cpp",
-	"LLMs can make mistakes. Verify important information.": "大语言模型可能会犯错，请核实关键信息。",
 	"LM Studio": "LM Studio",
 	"Load content from these URLs?": "要从这些 URL 加载内容吗？",
 	"Load Model": "加载模型",
