@@ -140,6 +140,7 @@
 	import XMark from '../icons/XMark.svelte';
 	import EmbeddedChatHistoryDropdown from './EmbeddedChatHistoryDropdown.svelte';
 	import InputVariablesModal from './MessageInput/InputVariablesModal.svelte';
+	import ThemeToggle from '../common/ThemeToggle.svelte';
 
 	export let chatIdProp = '';
 	export let embedded = false;
@@ -482,6 +483,7 @@
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
+		
 	} else {
 		chatOwner = null;
 	}
@@ -497,6 +499,19 @@
 
 	// Chat Input
 	let prompt = '';
+
+	// RUBBER DUCK: Class and Assignment Selection
+
+    let selectedClassId = ''; 
+
+ //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
+
+$: filteredAssignments = assignments.filter(
+    (assignment) => assignment.classId === selectedClassId
+);
+
+
+
 	let chatFiles = [];
 	let files: any[] = [];
 	let params = {};
