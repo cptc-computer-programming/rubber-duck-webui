@@ -155,19 +155,27 @@
 	export let onCreateEmbeddedChat: (() => any | Promise<any>) | null = null;
 	export let onSelectEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
 	export let onDeleteEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
-	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null = null;
+	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null =
+		null;
 
 	// tracks active class and assignment context for current session.
 	export let selectedClassId = '';
 	export let selectedAssignmentId = '';
 
-	let classes = [{
-		id: 'cpw-152', title: 'Database Systems'
-	}, {
-		id: 'cpw-219', title: 'Web Development'
-	}, {
-		id: 'cpw-245', title: 'Data Structures'
-	}];
+	let classes = [
+		{
+			id: 'cpw-152',
+			title: 'Database Systems'
+		},
+		{
+			id: 'cpw-219',
+			title: 'Web Development'
+		},
+		{
+			id: 'cpw-245',
+			title: 'Data Structures'
+		}
+	];
 
 	// Temp assignment list
 	let assignments = [
@@ -240,11 +248,11 @@
 	$: backgroundImage = embedded
 		? null
 		: ($selectedFolder as { meta?: { background_image_url?: string } } | null)?.meta
-			?.background_image_url ||
-		atSelectedModel?.info?.meta?.background_image_url ||
-		$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
-			?.background_image_url ||
-		($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
+				?.background_image_url ||
+			atSelectedModel?.info?.meta?.background_image_url ||
+			$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
+				?.background_image_url ||
+			($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
 
 	let atSelectedModel: Model | undefined;
 	let selectedModelIds: string[] = [];
@@ -483,7 +491,6 @@
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
-		
 	} else {
 		chatOwner = null;
 	}
@@ -502,15 +509,13 @@
 
 	// RUBBER DUCK: Class and Assignment Selection
 
-    let selectedClassId = ''; 
+	let selectedClassId = '';
 
- //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
+	//SHOW ASSIGNMENTS FOR THE SELECTED CLASS
 
-$: filteredAssignments = assignments.filter(
-    (assignment) => assignment.classId === selectedClassId
-);
-
-
+	$: filteredAssignments = assignments.filter(
+		(assignment) => assignment.classId === selectedClassId
+	);
 
 	let chatFiles = [];
 	let files: any[] = [];
@@ -701,27 +706,27 @@ $: filteredAssignments = assignments.filter(
 	$: pendingAskUser = findPendingAskUser(history);
 	$: savedAskUserPrompt = pendingAskUser
 		? {
-			show: true,
-			questions: Array.isArray(pendingAskUser.args?.questions)
-				? pendingAskUser.args.questions
-				: [],
-			allowOther: pendingAskUser.args?.allow_other !== false,
-			timeoutMs: null,
-			onConfirm: (value) => {
-				void answerPendingAskUser(
-					pendingAskUser.message.id,
-					pendingAskUser.call.call_id || pendingAskUser.call.id,
-					value?.answers ?? {},
-					false
-				);
-			},
-			onCancel: () => {
-				void rejectPendingAskUser(
-					pendingAskUser.message.id,
-					pendingAskUser.call.call_id || pendingAskUser.call.id
-				);
+				show: true,
+				questions: Array.isArray(pendingAskUser.args?.questions)
+					? pendingAskUser.args.questions
+					: [],
+				allowOther: pendingAskUser.args?.allow_other !== false,
+				timeoutMs: null,
+				onConfirm: (value) => {
+					void answerPendingAskUser(
+						pendingAskUser.message.id,
+						pendingAskUser.call.call_id || pendingAskUser.call.id,
+						value?.answers ?? {},
+						false
+					);
+				},
+				onCancel: () => {
+					void rejectPendingAskUser(
+						pendingAskUser.message.id,
+						pendingAskUser.call.call_id || pendingAskUser.call.id
+					);
+				}
 			}
-		}
 		: null;
 
 	$: socketAskUserPrompt = ((interaction: BrowserInteraction | undefined) => ({
@@ -2129,9 +2134,9 @@ $: filteredAssignments = assignments.filter(
 				[$chatId]: (q[$chatId] ?? []).map((message) =>
 					(message.files ?? []).some((item) => item.itemId === file.itemId)
 						? {
-							...message,
-							files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
-						}
+								...message,
+								files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
+							}
 						: message
 				)
 			}));
@@ -2193,9 +2198,9 @@ $: filteredAssignments = assignments.filter(
 		const autoTags = $settings?.autoTags ?? true;
 		const title = autoTitle
 			? await generateTitle(token, modelId, messages, _chatId).catch((error) => {
-				console.error('Could not generate voice chat title', error);
-				return null;
-			})
+					console.error('Could not generate voice chat title', error);
+					return null;
+				})
 			: null;
 		const savedChat = await getChatById(token, _chatId);
 		if (savedChat.title === initialTitle) {
@@ -2311,9 +2316,9 @@ $: filteredAssignments = assignments.filter(
 						const state = getBridgeTurnState(message);
 						const speech = !spoken
 							? (voice?.speech ?? [])
-								.map((item: any) => item.transcript)
-								.filter(Boolean)
-								.join('\n')
+									.map((item: any) => item.transcript)
+									.filter(Boolean)
+									.join('\n')
 							: '';
 						let content = visibleMessageText(message);
 						if (message.role === 'assistant') {
@@ -3631,8 +3636,8 @@ $: filteredAssignments = assignments.filter(
 		const lastMessage = history.currentId ? history.messages[history.currentId] : null;
 		const isGenerating = bridgeRequest
 			? createMessagesList(history, bridgeRequest.userMessageId).some(
-				(message) => message.role === 'assistant' && !message.done
-			)
+					(message) => message.role === 'assistant' && !message.done
+				)
 			: lastMessage && lastMessage.role === 'assistant' && !lastMessage.done;
 
 		if (isGenerating) {
@@ -4016,15 +4021,14 @@ $: filteredAssignments = assignments.filter(
 				model: model.id,
 
 				// RUBBER DUCK: Include class and assignment context in request payload
-				...(selectedAssignmentId && selectedClassId ?
-						{
+				...(selectedAssignmentId && selectedClassId
+					? {
 							rubber_duck_context: {
 								class_id: selectedClassId,
 								assignment_id: selectedAssignmentId
 							}
 						}
-						: {}
-				),
+					: {}),
 
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
@@ -4049,15 +4053,15 @@ $: filteredAssignments = assignments.filter(
 				terminal_id: terminalEnabled && $selectedTerminalId ? $selectedTerminalId : undefined,
 				tool_servers: $config?.features?.enable_tool_servers
 					? [
-						...($toolServers ?? []).filter(
-							(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
-						),
-						...(terminalEnabled
-							? ($terminalServers ?? [])
-								.filter((server) => !server.id)
-								.map((server) => ({ ...server, is_terminal: true }))
-							: [])
-					]
+							...($toolServers ?? []).filter(
+								(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
+							),
+							...(terminalEnabled
+								? ($terminalServers ?? [])
+										.filter((server) => !server.id)
+										.map((server) => ({ ...server, is_terminal: true }))
+								: [])
+						]
 					: [],
 				features: getFeatures(),
 				variables: {
@@ -4088,9 +4092,9 @@ $: filteredAssignments = assignments.filter(
 							(userMessage?.parentId ?? null) === null &&
 							createMessagesList(_history, responseMessageId).length === 2))
 						? {
-							title_generation: $settings?.title?.auto ?? true,
-							tags_generation: $settings?.autoTags ?? true
-						}
+								title_generation: $settings?.title?.auto ?? true,
+								tags_generation: $settings?.autoTags ?? true
+							}
 						: {}),
 					follow_up_generation: $settings?.autoFollowUps ?? true
 				}
@@ -4278,15 +4282,15 @@ $: filteredAssignments = assignments.filter(
 			await sendMessage(history, userMessage.id, {
 				...(suggestionPrompt
 					? {
-						messages: createMessagesList(history, message.id),
-						regenerationPrompt: suggestionPrompt
-					}
+							messages: createMessagesList(history, message.id),
+							regenerationPrompt: suggestionPrompt
+						}
 					: {}),
 				...((userMessage?.models ?? [...selectedModels]).length > 1
 					? {
-						modelId: message.model,
-						modelIdx: message.modelIdx
-					}
+							modelId: message.model,
+							modelIdx: message.modelIdx
+						}
 					: {})
 			});
 		}
@@ -4738,10 +4742,10 @@ $: filteredAssignments = assignments.filter(
 			<div class="text-sm text-gray-500">
 				<div class="font-medium break-all">{interaction.data.tool_call.name}</div>
 				<pre class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(
-					interaction.data.tool_call.arguments,
-					null,
-					2
-				)}</pre>
+						interaction.data.tool_call.arguments,
+						null,
+						2
+					)}</pre>
 			</div>
 		</EventConfirmDialog>
 	{/key}
@@ -4863,7 +4867,6 @@ $: filteredAssignments = assignments.filter(
 						/>
 					{/if}
 					<div id="chat-pane" class="flex flex-col flex-auto z-10 w-full @container overflow-auto">
-
 						<!-- Assignment & Class Selection Bar (Issue #44 Freeze Logic) -->
 						<div
 							class="flex items-center justify-between px-4 py-2 border-b
@@ -4872,20 +4875,26 @@ $: filteredAssignments = assignments.filter(
 						>
 							{#if selectedClassId && selectedAssignmentId && createMessagesList(history, history.currentId).length > 0}
 								<!-- Frozen State: Show static labels once chat starts and both are selected -->
-								<div class="flex items-center gap-6 text-xs sm:text-sm text-gray-900 dark:text-gray-100">
+								<div
+									class="flex items-center gap-6 text-xs sm:text-sm text-gray-900 dark:text-gray-100"
+								>
 									<div>
 										<span class="font-medium text-gray-500 dark:text-gray-400">Class:</span>
 										{classes.find((c) => c.id === selectedClassId)?.title ?? selectedClassId}
 									</div>
 									<div>
 										<span class="font-medium text-gray-500 dark:text-gray-400">Assignment:</span>
-										{assignments.find((a) => a.id === selectedAssignmentId)?.title ?? selectedAssignmentId}
+										{assignments.find((a) => a.id === selectedAssignmentId)?.title ??
+											selectedAssignmentId}
 									</div>
 								</div>
 							{:else}
 								<!-- Interactive State: Show dropdowns before chat starts or if selection is partial -->
 								<div class="flex items-center gap-2 mb-2">
-									<label for="class-select" class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+									<label
+										for="class-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
 										Class:
 									</label>
 									<select
@@ -4907,7 +4916,10 @@ $: filteredAssignments = assignments.filter(
 								</div>
 
 								<div class="flex items-center gap-2 mb-2">
-									<label for="assignment-select" class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+									<label
+										for="assignment-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
 										Assignment:
 									</label>
 									<select
@@ -5061,108 +5073,44 @@ $: filteredAssignments = assignments.filter(
 
 									<div
 										class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
-									>
-									</div>
+									></div>
 								</div>
-								@endif
-							{:else if embedded}
-								<div class="flex h-full min-h-0 flex-col justify-end">
-									{#if suggestedPrompts.length > 0}
-										<div class="flex flex-1 items-end px-5 pb-8">
-											<div class="w-full">
-												<div class="mb-2 text-[0.75rem] text-gray-300 dark:text-gray-700">
-													{$i18n.t('Suggested prompts')}
-												</div>
-												<div class="flex flex-col">
-													{#each suggestedPrompts as suggestion}
-														<button
-															type="button"
-															class="flex min-h-8 w-full items-center justify-between py-1 text-left text-[0.8125rem] leading-5 text-gray-500 transition hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
-															on:click={async () => {
+							{/if}
+						{:else if embedded}
+							<div class="flex h-full min-h-0 flex-col justify-end">
+								{#if suggestedPrompts.length > 0}
+									<div class="flex flex-1 items-end px-5 pb-8">
+										<div class="w-full">
+											<div class="mb-2 text-[0.75rem] text-gray-300 dark:text-gray-700">
+												{$i18n.t('Suggested prompts')}
+											</div>
+											<div class="flex flex-col">
+												{#each suggestedPrompts as suggestion}
+													<button
+														type="button"
+														class="flex min-h-8 w-full items-center justify-between py-1 text-left text-[0.8125rem] leading-5 text-gray-500 transition hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+														on:click={async () => {
 															await tick();
 															await submitHandler(withSelectedText(suggestion));
 														}}
-														>
-															<span class="min-w-0 truncate">{suggestion}</span>
-														</button>
-													{/each}
-												</div>
+													>
+														<span class="min-w-0 truncate">{suggestion}</span>
+													</button>
+												{/each}
 											</div>
 										</div>
-									{/if}
-									<div id={embedded ? messageInputDropzoneId : undefined} class="pb-2 z-10">
-										<MessageInput
-											{typingUsers}
-											on:typing={(event) => emitTyping(event.detail)}
-											callActive={!!(bridge?.connected || bridge?.connecting)}
-											callEnabled={!isShared}
-											bind:this={messageInput}
-											{history}
-											{taskIds}
-											bind:selectedModels
-											bind:files
-											bind:prompt
-											bind:autoScroll
-											bind:selectedToolIds
-											bind:selectedSkillIds
-											bind:selectedFilterIds
-											bind:imageGenerationEnabled
-											bind:codeInterpreterEnabled
-											{pendingOAuthTools}
-											{oauthRedirectHandler}
-											bind:webSearchEnabled
-											bind:atSelectedModel
-											bind:showCommands
-											bind:dragged
-											dropzoneId={messageInputDropzoneId}
-											chatId={$chatId}
-											{contextUsage}
-											{contextCompactionEnabled}
-											{embedded}
-											compactHandler={handleManualCompact}
-											statusHandler={handleStatusCommand}
-											forkHandler={handleForkChat}
-											{toolApprovalMode}
-											onToolApprovalModeChange={handleToolApprovalModeChange}
-											{generating}
-											{stopResponse}
-											{createMessagePair}
-											{onUpload}
-											{onUpdate}
-											messageQueue={$chatRequestQueues[$chatId] ?? []}
-											{chatTasks}
-											askUser={savedAskUserPrompt ?? socketAskUserPrompt}
-											onQueueSendNow={sendQueuedMessageNow}
-											onQueueEdit={editQueuedMessage}
-											onQueueDelete={deleteQueuedMessage}
-											onChange={(data: any) => {
-											if (!$temporaryChatEnabled) {
-												saveDraft(data, getDraftChatId());
-											}
-										}}
-											onWebSearchToggle={handleWebSearchToggle}
-											on:chatVariables={() => {
-											showChatVariablesModal = true;
-										}}
-											on:submit={async (e) => {
-											clearDraft(getDraftChatId());
-											if (e.detail || files.length > 0) {
-												await tick();
-												submitHandler(withSelectedText(e.detail));
-											}
-										}}
-										/>
 									</div>
-								</div>
-							{:else}
-								<div class="flex items-center h-full">
-									<Placeholder
+								{/if}
+								<div id={embedded ? messageInputDropzoneId : undefined} class="pb-2 z-10">
+									<MessageInput
+										{typingUsers}
+										on:typing={(event) => emitTyping(event.detail)}
 										callActive={!!(bridge?.connected || bridge?.connecting)}
 										callEnabled={!isShared}
-										bind:selectedModelIdx
+										bind:this={messageInput}
 										{history}
+										{taskIds}
 										bind:selectedModels
-										bind:messageInput
 										bind:files
 										bind:prompt
 										bind:autoScroll
@@ -5171,85 +5119,148 @@ $: filteredAssignments = assignments.filter(
 										bind:selectedFilterIds
 										bind:imageGenerationEnabled
 										bind:codeInterpreterEnabled
+										{pendingOAuthTools}
+										{oauthRedirectHandler}
 										bind:webSearchEnabled
 										bind:atSelectedModel
 										bind:showCommands
 										bind:dragged
+										dropzoneId={messageInputDropzoneId}
+										chatId={$chatId}
+										{contextUsage}
+										{contextCompactionEnabled}
+										{embedded}
+										compactHandler={handleManualCompact}
+										statusHandler={handleStatusCommand}
+										forkHandler={handleForkChat}
 										{toolApprovalMode}
 										onToolApprovalModeChange={handleToolApprovalModeChange}
-										{pendingOAuthTools}
-										{oauthRedirectHandler}
+										{generating}
 										{stopResponse}
 										{createMessagePair}
-										{onSelect}
 										{onUpload}
 										{onUpdate}
 										messageQueue={$chatRequestQueues[$chatId] ?? []}
+										{chatTasks}
 										askUser={savedAskUserPrompt ?? socketAskUserPrompt}
 										onQueueSendNow={sendQueuedMessageNow}
 										onQueueEdit={editQueuedMessage}
 										onQueueDelete={deleteQueuedMessage}
+										onChange={(data: any) => {
+											if (!$temporaryChatEnabled) {
+												saveDraft(data, getDraftChatId());
+											}
+										}}
 										onWebSearchToggle={handleWebSearchToggle}
 										on:chatVariables={() => {
+											showChatVariablesModal = true;
+										}}
+										on:submit={async (e) => {
+											clearDraft(getDraftChatId());
+											if (e.detail || files.length > 0) {
+												await tick();
+												submitHandler(withSelectedText(e.detail));
+											}
+										}}
+									/>
+								</div>
+							</div>
+						{:else}
+							<div class="flex items-center h-full">
+								<Placeholder
+									callActive={!!(bridge?.connected || bridge?.connecting)}
+									callEnabled={!isShared}
+									bind:selectedModelIdx
+									{history}
+									bind:selectedModels
+									bind:messageInput
+									bind:files
+									bind:prompt
+									bind:autoScroll
+									bind:selectedToolIds
+									bind:selectedSkillIds
+									bind:selectedFilterIds
+									bind:imageGenerationEnabled
+									bind:codeInterpreterEnabled
+									bind:webSearchEnabled
+									bind:atSelectedModel
+									bind:showCommands
+									bind:dragged
+									{toolApprovalMode}
+									onToolApprovalModeChange={handleToolApprovalModeChange}
+									{pendingOAuthTools}
+									{oauthRedirectHandler}
+									{stopResponse}
+									{createMessagePair}
+									{onSelect}
+									{onUpload}
+									{onUpdate}
+									messageQueue={$chatRequestQueues[$chatId] ?? []}
+									askUser={savedAskUserPrompt ?? socketAskUserPrompt}
+									onQueueSendNow={sendQueuedMessageNow}
+									onQueueEdit={editQueuedMessage}
+									onQueueDelete={deleteQueuedMessage}
+									onWebSearchToggle={handleWebSearchToggle}
+									on:chatVariables={() => {
 										showChatVariablesModal = true;
 									}}
-										onChange={(data: any) => {
+									onChange={(data: any) => {
 										if (!$temporaryChatEnabled) {
 											saveDraft(data, getDraftChatId());
 										}
 									}}
-										on:submit={async (e) => {
+									on:submit={async (e) => {
 										clearDraft(getDraftChatId());
 										if (e.detail || files.length > 0) {
 											await tick();
 											submitHandler(withSelectedText(e.detail));
 										}
 									}}
-									/>
-								</div>
-							{/if}
+								/>
 							</div>
-							</div>
+						{/if}
+					</div>
+				</div>
 
-							{#if !embedded}
-								<ChatControls
-									bind:history
-									bind:chatFiles
-									bind:params
-									bind:files
-									chatId={$chatId}
-									chatUser={chatOwner}
-									modelId={selectedModelIds?.at(0) ?? null}
-									models={selectedModelIds.reduce((a, e, i, arr) => {
+				{#if !embedded}
+					<ChatControls
+						bind:history
+						bind:chatFiles
+						bind:params
+						bind:files
+						chatId={$chatId}
+						chatUser={chatOwner}
+						modelId={selectedModelIds?.at(0) ?? null}
+						models={selectedModelIds.reduce((a, e, i, arr) => {
 							const model = $models.find((m) => m.id === e);
 							if (model) {
 								return [...a, model];
 							}
 							return a;
 						}, [])}
-									submitPrompt={submitHandler}
-									{stopResponse}
-									{bridge}
-									bind:callMode
-									{showMessage}
-									{eventTarget}
-									{codeInterpreterEnabled}
-								/>
-							{/if}
-							</div>
-							</div>
-						{:else if loading}
-							<div class=" flex items-center justify-center h-full w-full">
-								<div class="m-auto">
-									<Spinner className="size-5" />
-								</div>
-							</div>
-						{/if}
-					</div>
+						submitPrompt={submitHandler}
+						{stopResponse}
+						{bridge}
+						bind:callMode
+						{showMessage}
+						{eventTarget}
+						{codeInterpreterEnabled}
+					/>
+				{/if}
+			</div>
+		</div>
+	{:else if loading}
+		<div class=" flex items-center justify-center h-full w-full">
+			<div class="m-auto">
+				<Spinner className="size-5" />
+			</div>
+		</div>
+	{/if}
+</div>
 
-					<style>
-              ::-webkit-scrollbar {
-                  height: 0.5rem;
-                  width: 0.5rem;
-              }
-					</style>
+<style>
+	::-webkit-scrollbar {
+		height: 0.5rem;
+		width: 0.5rem;
+	}
+</style>

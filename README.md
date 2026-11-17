@@ -97,7 +97,6 @@ Open [http://localhost:5173](http://localhost:5173). For local models, keep Olla
 
 This project is based on Open WebUI. It contains code under multiple licenses; see [LICENSE](./LICENSE) and [LICENSE_HISTORY](./LICENSE_HISTORY) for the applicable terms and history. Please preserve applicable notices when modifying or redistributing the project.
 
-
 ## Long, imperfect development workflow
 
 ### Build all your containers
@@ -105,6 +104,7 @@ This project is based on Open WebUI. It contains code under multiple licenses; s
 ```
 docker compose up -d --build
 ```
+
 If your containers are already built and you want to stand up the app:
 
 ```
@@ -124,7 +124,7 @@ docker compose up -d --build openweb-ui
 ### Installing a small model
 
 If this is the first time you are building the apps, you need to install a small model that will
-run on your local hardware. 
+run on your local hardware.
 
 ```
 docker exec -it ollama ollama pull smollm2:135m
