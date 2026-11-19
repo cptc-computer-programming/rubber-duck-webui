@@ -1145,8 +1145,9 @@ async def _set_direct_model(request: Request, model_item: dict, user) -> None:
 def _load_assignment_markdown(assignment_id: str) -> str:
     if not isinstance(assignment_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', assignment_id):
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
-
-    return Path(f'assignments/{assignment_id}.md').read_text(encoding='utf-8')
+    
+    assignment_path = Path('assignments') / f'{assignment_id}.md'
+    return assignment_path.read_text(encoding='utf-8')
 
 
 @app.post('/api/chat/completions')
