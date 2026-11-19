@@ -37,8 +37,6 @@ jobs:
       # --force matches the Dockerfile; some dependencies have peer-dep conflicts.
       - name: Install dependencies
         run: npm ci --force
-        env:
-          ONNXRUNTIME_NODE_INSTALL_CUDA: skip
 
       - name: Build
         run: npm run build
