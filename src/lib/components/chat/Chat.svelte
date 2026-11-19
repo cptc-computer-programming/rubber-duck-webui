@@ -5133,6 +5133,10 @@ $: filteredAssignments = assignments.filter(
     <select
         id="class-select"
         bind:value={selectedClassId}
+		// When the class selection changes, reset the selected assignment ID
+        on:change={() => {
+			selectedAssignmentId = '';
+		}}
         class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
         bg-gray-50 dark:bg-gray-800
         border border-gray-300 dark:border-gray-700
@@ -5165,7 +5169,7 @@ $: filteredAssignments = assignments.filter(
 							>
                              // FILTERED ASSIGNMENTS BASED ON SELECTED CLASS
 
-							 
+
 								<option value="">Select Assignment</option>
 								{#each filteredAssignments as assignment}
 									<option value={assignment.id}>{assignment.title}</option>
