@@ -155,39 +155,42 @@
 	export let onCreateEmbeddedChat: (() => any | Promise<any>) | null = null;
 	export let onSelectEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
 	export let onDeleteEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
-	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null = null;
+	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null =
+		null;
 
-	// tracks active assignment context for current session.
-	
+	// tracks active class and assignment context for current session.
+	export let selectedClassId = '';
 	export let selectedAssignmentId = '';
 
-	let classes = [{
-		id: 'cpw-152', title: 'Database Systems'
-	}, {	
-		id: 'cpw-219', title: 'Web Development'
-	}, {
-		id: 'cpw-245', title: 'Data Structures'
-	}]
+	let classes = [
+		{
+			id: 'cpw-152',
+			title: 'Database Systems'
+		},
+		{
+			id: 'cpw-219',
+			title: 'Web Development'
+		},
+		{
+			id: 'cpw-245',
+			title: 'Data Structures'
+		}
+	];
 
- // Temp assignment list
-let assignments = [
-    // Database Systems - CPW 152
+	// Temp assignment list
+	let assignments = [
+		{ id: 'sql-joins', title: 'SQL Joins', classId: 'cpw-152' },
+		{ id: 'sql-queries', title: 'SQL Queries', classId: 'cpw-152' },
+		{ id: 'mvc-project', title: 'MVC Project', classId: 'cpw-219' },
+		{ id: 'model-binding', title: 'Model Binding', classId: 'cpw-219' },
+		{ id: 'arrays', title: 'Arrays', classId: 'cpw-245' },
+		{ id: 'sorting', title: 'Sorting', classId: 'cpw-245' }
+	];
 
-    { id: 'sql-joins', title: 'SQL Joins', classId: 'cpw-152' },
-    { id: 'sql-queries', title: 'SQL Queries', classId: 'cpw-152' },
-
-    // Web Development - CPW 219
-
-    { id: 'mvc-project', title: 'MVC Project', classId: 'cpw-219' },
-    { id: 'model-binding', title: 'Model Binding', classId: 'cpw-219' },
-
-    // Data Structures - CPW 245
-
-    { id: 'arrays', title: 'Arrays', classId: 'cpw-245' },
-    { id: 'sorting', title: 'Sorting', classId: 'cpw-245' }
-];
-
-	
+	// Filter assignments based on selected class
+	$: filteredAssignments = assignments.filter(
+		(assignment) => assignment.classId === selectedClassId
+	);
 
 	let loading = true;
 	$: chatContainerId = embedded ? 'note-chat-container' : 'chat-container';
@@ -488,7 +491,6 @@ let assignments = [
 
 	$: if (isShared && chat?.user_id) {
 		void resolveChatOwner(chat.user_id);
-		
 	} else {
 		chatOwner = null;
 	}
@@ -504,18 +506,6 @@ let assignments = [
 
 	// Chat Input
 	let prompt = '';
-
-	// RUBBER DUCK: Class and Assignment Selection
-
-    let selectedClassId = ''; 
-
- //SHOW ASSIGNMENTS FOR THE SELECTED CLASS
-
-$: filteredAssignments = assignments.filter(
-    (assignment) => assignment.classId === selectedClassId
-);
-
-
 
 	let chatFiles = [];
 	let files: any[] = [];
@@ -873,8 +863,6 @@ $: filteredAssignments = assignments.filter(
 			webSearchEnabled = input.webSearchEnabled ?? false;
 			imageGenerationEnabled = input.imageGenerationEnabled ?? false;
 			codeInterpreterEnabled = input.codeInterpreterEnabled ?? false;
-			// Ignore approval modes in older drafts. Restoring input must not overwrite chat
-			// parameters or invoke the change handler, which can save settings and approve tools.
 			return true;
 		} catch (e) {
 			return false;
@@ -919,8 +907,6 @@ $: filteredAssignments = assignments.filter(
 		cancelBrowserInteractions();
 		bridge?.end();
 		noteChatDebug('navigateHandler start');
-		// Mark the outgoing chat as read before loading the new one.
-		// $chatId still holds the previous chat here — loadChat() updates it.
 		if ($chatId && $chatId !== chatIdProp && !$temporaryChatEnabled) {
 			noteChatDebug('marking outgoing chat read', { outgoingChatId: $chatId });
 			updateLastReadAt($chatId);
@@ -955,12 +941,10 @@ $: filteredAssignments = assignments.filter(
 
 			await tick();
 
-			// Mark chat read when initially loading it
 			if (chatIdProp && !$temporaryChatEnabled) {
 				updateLastReadAt(chatIdProp);
 			}
 
-			// Process any queued requests if the chat is idle
 			const lastMessage = history.currentId ? history.messages[history.currentId] : null;
 			const isIdle = !lastMessage || lastMessage.role !== 'assistant' || lastMessage.done;
 			if (isIdle) {
@@ -1027,7 +1011,6 @@ $: filteredAssignments = assignments.filter(
 		const { type, data } = e;
 
 		if (type === 'prompt') {
-			// Handle prompt selection
 			messageInput?.setText(data, async () => {
 				if (!($settings?.insertSuggestionPrompt ?? false)) {
 					await tick();
@@ -1051,7 +1034,6 @@ $: filteredAssignments = assignments.filter(
 			return;
 		}
 		sessionStorage.selectedModels = selectedModelsString;
-		console.log('saveSessionSelectedModels', selectedModels, sessionStorage.selectedModels);
 	};
 
 	const continueOAuthRedirect = async () => {
@@ -1074,7 +1056,6 @@ $: filteredAssignments = assignments.filter(
 	};
 
 	const resetInput = async () => {
-		// Let the $: update finish first, or webSearchActive misses the default-feature writes
 		await tick();
 		selectedToolIds = [];
 		selectedSkillIds = [];
@@ -1089,7 +1070,6 @@ $: filteredAssignments = assignments.filter(
 		}
 	};
 
-	/** Check whether a terminal ID references an available system or direct terminal. */
 	const isTerminalAvailable = (tid: string): boolean => {
 		return (
 			$config?.features?.enable_tool_servers === true &&
@@ -1169,7 +1149,6 @@ $: filteredAssignments = assignments.filter(
 
 			const model = atSelectedModel ?? $models.find((m) => m.id === selectedModels[0]);
 			if (model) {
-				// Set Default Tools
 				if (model?.info?.meta?.toolIds) {
 					const defaultIds = [
 						...new Set(
@@ -1179,7 +1158,6 @@ $: filteredAssignments = assignments.filter(
 						)
 					];
 
-					// Separate unauthenticated OAuth tools
 					const unauthed = [];
 					const authed = [];
 					for (const id of defaultIds) {
@@ -1203,7 +1181,6 @@ $: filteredAssignments = assignments.filter(
 					selectedToolIds = selectedToolIds.filter((id) => !id.startsWith('direct_server:'));
 				}
 
-				// Set Default Skills
 				if (model?.info?.meta?.skillIds) {
 					selectedSkillIds = [
 						...new Set(
@@ -1216,14 +1193,12 @@ $: filteredAssignments = assignments.filter(
 					selectedSkillIds = [];
 				}
 
-				// Set Default Filters (Toggleable only)
 				if (model?.info?.meta?.defaultFilterIds) {
 					selectedFilterIds = model.info.meta.defaultFilterIds.filter((id) =>
 						model?.filters?.find((f) => f.id === id)
 					);
 				}
 
-				// Set Default Features
 				if (model?.info?.meta?.defaultFeatureIds) {
 					if (
 						model.info?.meta?.capabilities?.['image_generation'] &&
@@ -1250,7 +1225,6 @@ $: filteredAssignments = assignments.filter(
 					}
 				}
 
-				// Set Default Terminal — only if the referenced terminal actually exists
 				if (model?.info?.meta?.terminalId) {
 					const tid = model.info.meta.terminalId;
 					if (isTerminalAvailable(tid)) {
@@ -1457,7 +1431,6 @@ $: filteredAssignments = assignments.filter(
 	$: syncChatRoom($socket, $chatId, $temporaryChatEnabled);
 
 	const chatEventHandler = async (event, cb) => {
-		console.log(event);
 		if (event?.data?.type === 'voice:play_animation') {
 			cb?.(
 				routeAvatarAnimation(eventTarget, event, {
@@ -1510,7 +1483,6 @@ $: filteredAssignments = assignments.filter(
 			return;
 		}
 
-		// A new chat's title can arrive before its id; the response message already exists.
 		if (
 			event.chat_id === $chatId ||
 			(!$chatId && event?.data?.type === 'chat:title' && history.messages[event.message_id])
@@ -1606,7 +1578,6 @@ $: filteredAssignments = assignments.filter(
 					}
 					if (!event.shared && event.message_id === history.currentId) {
 						taskIds = null;
-						// Set all response messages to done
 						for (const messageId of history.messages[message.parentId].childrenIds) {
 							history.messages[messageId].done = true;
 						}
@@ -1630,7 +1601,6 @@ $: filteredAssignments = assignments.filter(
 				} else if (type === 'chat:message:embeds' || type === 'embeds') {
 					message.embeds = data.embeds;
 
-					// Auto-scroll to the embed once it's rendered in the DOM
 					await tick();
 					setTimeout(() => {
 						const embedEl = document.getElementById(`${event.message_id}-embeds-container`);
@@ -1657,7 +1627,6 @@ $: filteredAssignments = assignments.filter(
 						scrollToBottom('smooth');
 					}
 				} else if (type === 'chat:outlet') {
-					// Outlet filter ran on backend — sync in-memory state
 					const outletMessages = data.messages ?? [];
 					for (const msg of outletMessages) {
 						if (msg?.id && history.messages[msg.id]) {
@@ -1672,9 +1641,8 @@ $: filteredAssignments = assignments.filter(
 						}
 					}
 					history = history;
-					return; // Patches history.messages directly; skip the trailing write-back.
+					return;
 				} else if (type === 'chat:message:favorite') {
-					// Update message favorite status
 					message.favorite = data.favorite;
 				} else if (type === 'chat:title') {
 					chatTitle.set(data);
@@ -1682,14 +1650,13 @@ $: filteredAssignments = assignments.filter(
 						await onEmbeddedChatTitle?.($chatId, data);
 					}
 					await refreshChatList(localStorage.token);
-					return; // The message copy is stale after the await; skip the trailing write-back.
+					return;
 				} else if (type === 'chat:tags') {
 					chat = await getChatById(localStorage.token, $chatId);
 					allTags.set(await getAllTags(localStorage.token));
 					return;
 				} else if (type === 'source' || type === 'citation') {
 					if (data?.type === 'code_execution') {
-						// Code execution; update existing code execution by ID, or add new one.
 						if (!message?.code_executions) {
 							message.code_executions = [];
 						}
@@ -1706,7 +1673,6 @@ $: filteredAssignments = assignments.filter(
 
 						message.code_executions = message.code_executions;
 					} else {
-						// Regular source.
 						if (message?.sources) {
 							message.sources.push(data);
 						} else {
@@ -1739,9 +1705,8 @@ $: filteredAssignments = assignments.filter(
 					eventCallback = cb;
 
 					try {
-						// Use Function constructor to evaluate code in a safer way
 						const asyncFunction = new Function(`return (async () => { ${data.code} })()`);
-						const result = await asyncFunction(); // Await the result of the async function
+						const result = await asyncFunction();
 
 						if (cb) {
 							cb(result);
@@ -1769,9 +1734,6 @@ $: filteredAssignments = assignments.filter(
 
 				history.messages[event.message_id] = message;
 			}
-		} else {
-			// Non-active chat completion: queue stays in the global store.
-			// navigateHandler will process it when the user returns to that chat.
 		}
 	};
 
@@ -1783,26 +1745,20 @@ $: filteredAssignments = assignments.filter(
 		const isSameOrigin = event.origin === window.origin;
 		const type = event.data?.type;
 
-		// Prompt-driving types are trusted only same-origin, from our own embed iframes
-		// (opaque srcdoc origin, submission still confirmed below) or via explicit opt-in.
 		const promptTypes = ['input:prompt', 'input:prompt:submit', 'action:submit'];
 		const isOwnEmbed = isEmbedWindow(event.source);
 		const isTrusted =
 			isSameOrigin || isOwnEmbed || ($settings?.iframeSandboxAllowSameOrigin ?? false);
 
-		// Non-prompt message types are always restricted to same-origin only.
 		if (!isSameOrigin && !promptTypes.includes(type)) {
 			return;
 		}
 
-		// Prompt types from an untrusted cross-origin source are silently dropped.
 		if (promptTypes.includes(type) && !isTrusted) {
 			return;
 		}
 
 		if (type === 'action:submit') {
-			console.debug(event.data.text);
-
 			if (prompt !== '') {
 				if (isSameOrigin) {
 					await tick();
@@ -1823,8 +1779,6 @@ $: filteredAssignments = assignments.filter(
 		}
 
 		if (type === 'input:prompt') {
-			console.debug(event.data.text);
-
 			const inputElement = document.getElementById('chat-input');
 
 			if (inputElement) {
@@ -1834,8 +1788,6 @@ $: filteredAssignments = assignments.filter(
 		}
 
 		if (type === 'input:prompt:submit') {
-			console.debug(event.data.text);
-
 			if (event.data.text !== '') {
 				if (isSameOrigin) {
 					await tick();
@@ -1879,7 +1831,6 @@ $: filteredAssignments = assignments.filter(
 		if ($chatId !== id || !tasks) return;
 		taskIds = tasks.task_ids?.length ? tasks.task_ids : null;
 		if (!taskIds && hasPendingAssistantLeaf()) {
-			// A server restart can leave unfinished messages without a completion event.
 			const loaded = await loadChat();
 			if (loaded && $chatId === id) await processNextInQueue(id);
 		}
@@ -1887,7 +1838,6 @@ $: filteredAssignments = assignments.filter(
 
 	onMount(() => {
 		loading = true;
-		console.log('mounted');
 		window.addEventListener('message', onMessageHandler);
 		$socket?.on('events', chatEventHandler);
 		$socket?.on('connect', handleSocketConnect);
@@ -1899,7 +1849,6 @@ $: filteredAssignments = assignments.filter(
 		const audioQueueInstance = new AudioQueue(document.getElementById('audioElement'));
 		audioQueue.set(audioQueueInstance);
 
-		// Restore direct terminal enabled states based on persisted selectedTerminalId
 		if ($settings?.terminalServers?.length) {
 			settings.set({
 				...$settings,
@@ -1927,14 +1876,12 @@ $: filteredAssignments = assignments.filter(
 			}
 		});
 
-		// the artifacts pane reads this list when it opens, which can be before the debounced rebuild
 		const showArtifactsSubscribe = showArtifacts.subscribe((value) => {
 			if (value) getContents();
 		});
 
 		const selectedFolderSubscribe = selectedFolder.subscribe(async (folder) => {
 			await tick();
-			// Folder default models apply to new chats only.
 			if (!history.currentId && folder) {
 				const folderModels = normalizeSelectedModels(folder.data?.model_ids ?? []);
 				if (!equal(selectedModels, folderModels)) {
@@ -1985,9 +1932,6 @@ $: filteredAssignments = assignments.filter(
 				showArtifactsSubscribe();
 				selectedFolderSubscribe();
 
-				// Clear the selected chat when leaving the chat surface (e.g. navigating
-				// to the admin panel), otherwise the previously-viewed chat stays selected
-				// in the sidebar and deleting/archiving it wrongly navigates away.
 				clearTyping();
 				if (joinedChatId)
 					$socket?.emit('events:chat', { chat_id: joinedChatId, data: { type: 'leave' } });
@@ -2009,19 +1953,7 @@ $: filteredAssignments = assignments.filter(
 		};
 	});
 
-	// File upload functions
-
 	const uploadGoogleDriveFile = async (fileData) => {
-		console.log('Starting uploadGoogleDriveFile with:', {
-			id: fileData.id,
-			name: fileData.name,
-			url: fileData.url,
-			headers: {
-				Authorization: `Bearer ${token}`
-			}
-		});
-
-		// Validate input
 		if (!fileData?.id || !fileData?.name || !fileData?.url || !fileData?.headers?.Authorization) {
 			throw new Error('Invalid file data provided');
 		}
@@ -2042,9 +1974,6 @@ $: filteredAssignments = assignments.filter(
 
 		try {
 			files = [...files, fileItem];
-			console.log('Processing web file with URL:', fileData.url);
-
-			// Configure fetch options with proper headers
 			const fetchOptions = {
 				headers: {
 					Authorization: fileData.headers.Authorization,
@@ -2053,8 +1982,6 @@ $: filteredAssignments = assignments.filter(
 				method: 'GET'
 			};
 
-			// Attempt to fetch the file
-			console.log('Fetching file content from Google Drive...');
 			const fileResponse = await fetch(fileData.url, fetchOptions);
 
 			if (!fileResponse.ok) {
@@ -2062,39 +1989,21 @@ $: filteredAssignments = assignments.filter(
 				throw new Error(`Failed to fetch file (${fileResponse.status}): ${errorText}`);
 			}
 
-			// Get content type from response
 			const contentType = fileResponse.headers.get('content-type') || 'application/octet-stream';
-			console.log('Response received with content-type:', contentType);
-
-			// Convert response to blob
-			console.log('Converting response to blob...');
 			const fileBlob = await fileResponse.blob();
 
 			if (fileBlob.size === 0) {
 				throw new Error('Retrieved file is empty');
 			}
 
-			console.log('Blob created:', {
-				size: fileBlob.size,
-				type: fileBlob.type || contentType
-			});
-
-			// Create File object with proper MIME type
 			const file = new File([fileBlob], fileData.name, {
 				type: fileBlob.type || contentType
-			});
-
-			console.log('File object created:', {
-				name: file.name,
-				size: file.size,
-				type: file.type
 			});
 
 			if (file.size === 0) {
 				throw new Error('Created file is empty');
 			}
 
-			// If the file is an audio file, provide the language for STT.
 			let metadata = null;
 			if (
 				(file.type.startsWith('audio/') || file.type.startsWith('video/')) &&
@@ -2105,17 +2014,12 @@ $: filteredAssignments = assignments.filter(
 				};
 			}
 
-			// Upload file to server
-			console.log('Uploading file to server...');
 			const uploadedFile = await uploadFile(localStorage.token, file, metadata);
 
 			if (!uploadedFile) {
 				throw new Error('Server returned null response for file upload');
 			}
 
-			console.log('File uploaded successfully:', uploadedFile);
-
-			// Update file item with upload results
 			fileItem.status = 'uploaded';
 			fileItem.file = uploadedFile;
 			fileItem.id = uploadedFile.id;
@@ -2126,7 +2030,6 @@ $: filteredAssignments = assignments.filter(
 			files = files;
 			toast.success($i18n.t('File uploaded successfully'));
 		} catch (e) {
-			console.error('Error uploading file:', e);
 			fileItem.status = 'error';
 			fileItem.error = e.message || `${e}`;
 			files = files.filter((f) => f.itemId !== tempItemId);
@@ -2148,7 +2051,6 @@ $: filteredAssignments = assignments.filter(
 			urls = [urls];
 		}
 
-		// Create file items first
 		const fileItems = urls.map((url) => ({
 			type: 'text',
 			name: url,
@@ -2159,7 +2061,6 @@ $: filteredAssignments = assignments.filter(
 			error: ''
 		}));
 
-		// Display all items at once
 		files = [...files, ...fileItems];
 
 		for (const fileItem of fileItems) {
@@ -2317,8 +2218,6 @@ $: filteredAssignments = assignments.filter(
 	) => {
 		const branch = createMessagesList(history, history.currentId);
 		let parentIndex = branch.findIndex((entry) => entry.id === parentId);
-		// A chat answer can have been inserted while this spoken reply was being generated.
-		// Keep the reply on that branch, before the next user turn, rather than losing it as a sibling.
 		if (role === 'assistant' && parentIndex >= 0) {
 			while (branch[parentIndex + 1]?.role === 'assistant') parentIndex++;
 			parentId = branch[parentIndex].id;
@@ -2340,8 +2239,6 @@ $: filteredAssignments = assignments.filter(
 		history.messages[id] = message;
 		if (parentId && history.messages[parentId]) {
 			history.messages[parentId].childrenIds.push(id);
-			// A second transcript can arrive before the first spoken reply finishes.
-			// Insert that reply before the next user message without switching branches.
 			if (role === 'assistant' && nextMessage?.role === 'user') {
 				nextMessage.parentId = id;
 				message.childrenIds.push(nextMessage.id);
@@ -2357,13 +2254,11 @@ $: filteredAssignments = assignments.filter(
 			const modelId = selectedModelIds[0];
 			const _chatId = await initChatHandler(history);
 			if (!$temporaryChatEnabled) {
-				// Realtime replies need no chat completion; start metadata work at chat creation.
 				void generateVoiceChatMetadata(_chatId, modelId, content, chat.title).catch((error) => {
 					console.error('Could not save voice chat metadata', error);
 				});
 			}
 		} else if (!$temporaryChatEnabled) {
-			// Patch only the new message, so a running backend turn keeps its current output.
 			await updateChatById(localStorage.token, $chatId, {
 				history: { currentId: history.currentId, messages: changedMessages }
 			});
@@ -2546,7 +2441,6 @@ $: filteredAssignments = assignments.filter(
 						contents = [...contents, { type: 'iframe', content: renderedContent }];
 					});
 				} else {
-					// Check for SVG content
 					for (const block of codeBlocks) {
 						if (block.lang === 'svg' || (block.lang === 'xml' && block.code.includes('<svg'))) {
 							contents = [...contents, { type: 'svg', content: block.code }];
@@ -2558,10 +2452,6 @@ $: filteredAssignments = assignments.filter(
 
 		artifactContents.set(contents);
 	};
-
-	//////////////////////////
-	// Web functions
-	//////////////////////////
 
 	const openCallOverlay = () => {
 		if (isShared) return;
@@ -2592,11 +2482,8 @@ $: filteredAssignments = assignments.filter(
 	const initNewChat = async () => {
 		cancelBrowserInteractions();
 		bridge?.end();
-		console.log('initNewChat');
 		resetWebSearchConfirmation();
 
-		// Mark the outgoing chat as read before resetting; in-place created chats
-		// keep chatIdProp undefined, so navigateHandler never marks them read.
 		if ($chatId && !$temporaryChatEnabled) {
 			updateLastReadAt($chatId);
 		}
@@ -2609,7 +2496,6 @@ $: filteredAssignments = assignments.filter(
 			if ($temporaryChatEnabled === false) {
 				await temporaryChatEnabled.set(true);
 			} else if ($temporaryChatEnabled === null) {
-				// if set to null set to false; refer to temp chat toggle click handler
 				await temporaryChatEnabled.set(false);
 			}
 		}
@@ -2653,46 +2539,36 @@ $: filteredAssignments = assignments.filter(
 
 			if (urlModels.length === 1) {
 				if (!$models.find((m) => m.id === urlModels[0])) {
-					// Model not found; open model selector and prefill
 					await openModelSelectorWithSearch(urlModels[0]);
 				} else {
-					// Model found; set it as selected
 					selectedModels = urlModels;
 				}
 			} else {
-				// Multiple models; set as selected
 				selectedModels = urlModels;
 			}
 
-			// Unavailable models filtering
 			selectedModels = selectedModels.filter((modelId) =>
 				$models.map((m) => m.id).includes(modelId)
 			);
 		} else {
 			if ($selectedFolder) {
-				// Folder defaults are explicit; never inherit a previous chat's selection.
 				selectedModels = normalizeSelectedModels($selectedFolder.data?.model_ids ?? []);
 			} else {
 				if (sessionStorage.selectedModels) {
-					// Set from session storage (temporary selection)
 					selectedModels = JSON.parse(sessionStorage.selectedModels);
 					sessionStorage.removeItem('selectedModels');
 				} else {
 					if ($settings?.models) {
-						// Set from user settings
 						selectedModels = $settings?.models;
 					} else if (defaultModels && defaultModels.length > 0) {
-						// Set from default models
 						selectedModels = defaultModels;
 					}
 				}
 			}
 
-			// Unavailable & hidden models filtering
 			selectedModels = normalizeSelectedModels(selectedModels);
 		}
 
-		// Ensure at least one model is selected
 		if (selectedModels.length === 0 || (selectedModels.length === 1 && selectedModels[0] === '')) {
 			if (availableModels.length > 0) {
 				if (defaultModels && defaultModels.length > 0) {
@@ -2703,7 +2579,6 @@ $: filteredAssignments = assignments.filter(
 					selectedModels.length === 0 ||
 					(selectedModels.length === 1 && selectedModels[0] === '')
 				) {
-					// Only fall back to first available model if default models didn't resolve
 					selectedModels = [availableModels?.at(0) ?? ''];
 				}
 			} else {
@@ -2723,7 +2598,6 @@ $: filteredAssignments = assignments.filter(
 
 		autoScroll = true;
 
-		// resetInput() must stay last: the selected model's defaults override the draft's selection.
 		await restoreChatInput(sessionStorage.getItem('chat-input'));
 		await resetInput();
 		await chatId.set('');
@@ -2777,7 +2651,6 @@ $: filteredAssignments = assignments.filter(
 				.filter((id) => id && ($tools ?? []).find((t) => t.id === id));
 		}
 
-		// Restore tool selection after OAuth redirect
 		const pendingToolId = sessionStorage.getItem('pendingOAuthToolId');
 		if (pendingToolId) {
 			sessionStorage.removeItem('pendingOAuthToolId');
@@ -2786,7 +2659,6 @@ $: filteredAssignments = assignments.filter(
 			}
 		}
 
-		// Consume one-shot desktop event (e.g. Spotlight query, call shortcut)
 		if ($desktopEvent) {
 			const event = $desktopEvent;
 			desktopEvent.set(null);
@@ -2797,7 +2669,6 @@ $: filteredAssignments = assignments.filter(
 				const query = event.data?.query;
 				const eventFiles = event.data?.files;
 
-				// Attach screenshot images from desktop (e.g. Spotlight region capture)
 				if (eventFiles?.length) {
 					for (const ef of eventFiles) {
 						files = [
@@ -2834,7 +2705,6 @@ $: filteredAssignments = assignments.filter(
 
 	const loadChat = async () => {
 		noteChatDebug('loadChat start');
-		// chatIdProp is empty for chats started from the home page (URL set via replaceState)
 		chatId.set(chatIdProp || $chatId);
 		noteChatDebug('loadChat set active chat id');
 
@@ -2854,12 +2724,6 @@ $: filteredAssignments = assignments.filter(
 			}
 			return null;
 		});
-		noteChatDebug('getChatById completed', {
-			found: !!chat,
-			chatId: chat?.id,
-			hasChatPayload: !!chat?.chat,
-			title: chat?.title
-		});
 
 		if (chat) {
 			tags = await getTagsById(localStorage.token, $chatId).catch(async (error) => {
@@ -2870,24 +2734,16 @@ $: filteredAssignments = assignments.filter(
 				});
 				return [];
 			});
-			noteChatDebug('getTagsById completed', { tagCount: tags?.length ?? 0 });
 
 			const chatContent = chat.chat;
 			chatVariables = chat?.variables ?? {};
 
 			if (chatContent) {
-				noteChatDebug('chat payload found', {
-					models: chatContent?.models,
-					hasHistory: !!chatContent?.history,
-					messageCount: Object.keys(chatContent?.history?.messages ?? {}).length
-				});
-
 				selectedModels =
 					(chatContent?.models ?? undefined) !== undefined
 						? chatContent.models
 						: [chatContent.models ?? ''];
 
-				// An empty model list is not evidence that the chat's models are gone.
 				if ($models.length > 0) {
 					selectedModels = selectedModels.filter((modelId) =>
 						$models.map((m) => m.id).includes(modelId)
@@ -2902,7 +2758,6 @@ $: filteredAssignments = assignments.filter(
 					(selectedModels.length === 1 && selectedModels[0] === '')
 				) {
 					selectedModels = normalizeSelectedModels(selectedModels);
-					noteChatDebug('normalized empty selected models after load', { selectedModels });
 				}
 
 				oldSelectedModelIds = structuredClone(selectedModels);
@@ -2915,8 +2770,6 @@ $: filteredAssignments = assignments.filter(
 					history.currentId = chat.current_message_id;
 				}
 
-				// Sanitize history: repair orphaned references and structurally-malformed
-				// nodes from failed regenerations (#24424, #24157, #20474)
 				sanitizeHistory(history);
 
 				chatTitle.set(chatContent.title);
@@ -2925,14 +2778,12 @@ $: filteredAssignments = assignments.filter(
 				delete params.note_id;
 				chatFiles = structuredClone(chatContent?.files ?? []);
 
-				// Load tasks from chat-level DB field
 				chatTasks = chat?.tasks ?? [];
 				serverContextUsage = chat?.context_usage ?? null;
 
 				autoScroll = true;
 				await tick();
 
-				// Mark all non-current assistant messages as done
 				if (history.currentId) {
 					for (const message of Object.values(history.messages)) {
 						if (
@@ -2946,9 +2797,6 @@ $: filteredAssignments = assignments.filter(
 					}
 				}
 
-				// Reconcile active tasks with message state:
-				// If the response is already done, remaining tasks are just background
-				// work (follow-ups, title gen) that shouldn't block the input.
 				const activeTaskIds = taskIds;
 				const currentMessage = history.currentId ? history.messages[history.currentId] : null;
 				const pendingTaskIds = await getTaskIdsByChatId(localStorage.token, $chatId)
@@ -2961,12 +2809,7 @@ $: filteredAssignments = assignments.filter(
 						});
 						return [];
 					});
-				noteChatDebug('task reconciliation completed', {
-					pendingTaskCount: pendingTaskIds.length,
-					hasCurrentMessage: !!currentMessage
-				});
 				if (taskIds !== activeTaskIds) {
-					noteChatDebug('task ids changed during load; aborting stale load');
 					return;
 				}
 				const responseComplete = currentMessage?.role === 'assistant' && currentMessage?.done;
@@ -2975,7 +2818,6 @@ $: filteredAssignments = assignments.filter(
 					taskIds = pendingTaskIds;
 				} else {
 					taskIds = null;
-					// No active tasks and message incomplete → generation was interrupted
 					if (pendingTaskIds.length === 0) {
 						for (const message of Object.values(history.messages)) {
 							if (
@@ -2995,18 +2837,9 @@ $: filteredAssignments = assignments.filter(
 
 				return true;
 			} else {
-				console.warn('[note-chat] chat response missing chat payload', {
-					chatIdProp,
-					activeChatId: $chatId,
-					chat
-				});
 				return null;
 			}
 		}
-		console.warn('[note-chat] no chat returned from getChatById', {
-			chatIdProp,
-			activeChatId: $chatId
-		});
 	};
 
 	const scrollToBottom = async (behavior = 'auto') => {
@@ -3017,12 +2850,6 @@ $: filteredAssignments = assignments.filter(
 				behavior
 			});
 
-			// content-visibility: auto causes the initial scrollHeight to be based on
-			// estimated sizes (contain-intrinsic-size). After we scroll, previously
-			// off-screen messages become visible and the browser resolves their actual
-			// heights, which shifts scrollHeight. Re-layouts can cascade across frames
-			// (new sizes reveal more content, triggering further size resolution), so
-			// we re-scroll across two animation frames to land at the true bottom.
 			requestAnimationFrame(() => {
 				if (messagesContainerElement) {
 					messagesContainerElement.scrollTo({
@@ -3124,7 +2951,6 @@ $: filteredAssignments = assignments.filter(
 			await submitPrompt(item.prompt, item.files);
 		} finally {
 			processingQueueChats.delete(targetChatId);
-			// Completion can arrive before submitPrompt returns, while the queue is locked.
 			if ($chatId === targetChatId) {
 				await processNextInQueue(targetChatId);
 			}
@@ -3157,8 +2983,6 @@ $: filteredAssignments = assignments.filter(
 	};
 
 	const chatCompletedHandler = async (_chatId, modelId, responseMessageId, messages) => {
-		// Backend handles outlet filters and persistence inline.
-		// Just refresh the sidebar chat list.
 		if ($chatId == _chatId && !$temporaryChatEnabled) {
 			await refreshChatList(localStorage.token);
 		}
@@ -3189,7 +3013,6 @@ $: filteredAssignments = assignments.filter(
 		});
 
 		if (res !== null && res.messages) {
-			// Update chat history with the new messages
 			for (const message of res.messages) {
 				history.messages[message.id] = {
 					...history.messages[message.id],
@@ -3251,7 +3074,6 @@ $: filteredAssignments = assignments.filter(
 						user_id: $user?.id,
 						content: `[RESPONSE] ${responseMessageId}`,
 						done: true,
-
 						model: modelId,
 						modelName: model.name ?? model.id,
 						modelIdx: modelIdx,
@@ -3397,7 +3219,6 @@ $: filteredAssignments = assignments.filter(
 			else handleOpenAIError(error, message);
 		}
 
-		// Store raw OR-aligned output items from backend
 		if (output) {
 			message.output = output;
 			message.content = getOutputText(output);
@@ -3418,11 +3239,9 @@ $: filteredAssignments = assignments.filter(
 
 		if (choices && !output) {
 			if (choices[0]?.message?.content) {
-				// Non-stream response
 				message.content += choices[0]?.message?.content;
 				if (!shared) dispatchCallOverlayAudio(message);
 			} else {
-				// Stream response
 				let value = choices[0]?.delta?.content ?? '';
 				if (message.content == '' && value == '\n') {
 					console.log('Empty response');
@@ -3438,7 +3257,6 @@ $: filteredAssignments = assignments.filter(
 		}
 
 		if (content && !output) {
-			// REALTIME_CHAT_SAVE is disabled
 			message.content = content;
 
 			if (!shared && navigator.vibrate && ($settings?.hapticFeedback ?? false)) {
@@ -3480,7 +3298,6 @@ $: filteredAssignments = assignments.filter(
 				document.getElementById(`speak-button-${message.id}`)?.click();
 			}
 
-			// Emit chat event for TTS (only when call overlay is active)
 			dispatchCallOverlayAudio(message, true);
 			eventTarget.dispatchEvent(
 				new CustomEvent('chat:finish', {
@@ -3498,9 +3315,6 @@ $: filteredAssignments = assignments.filter(
 				scrollToBottom();
 			}
 
-			// Fire-and-forget: run chatCompletedHandler for background work
-			// (outlet filters, chat save, title gen, follow-ups, tags)
-			// without blocking the user from sending new messages.
 			chatCompletedHandler(
 				chatId,
 				message.model,
@@ -3508,16 +3322,11 @@ $: filteredAssignments = assignments.filter(
 				createMessagesList(history, message.id)
 			);
 
-			// Process next queued request if any
 			await processNextInQueue(chatId);
 		}
 
 		bridge?.update();
 	};
-
-	//////////////////////////
-	// Chat functions
-	//////////////////////////
 
 	const submitPrompt = async (
 		inputContent: string,
@@ -3534,11 +3343,9 @@ $: filteredAssignments = assignments.filter(
 			)
 		);
 		chatFiles = chatFiles.filter(
-			// Remove duplicates
 			(item, index, array) => array.findIndex((i) => equal(i, item)) === index
 		);
 
-		// Create user message
 		let userMessageId = bridgeRequest?.userMessageId ?? uuidv4();
 		let userMessage = {
 			id: userMessageId,
@@ -3549,23 +3356,20 @@ $: filteredAssignments = assignments.filter(
 			user_id: $user?.id,
 			content: inputContent,
 			files: _files.length > 0 ? _files : undefined,
-			timestamp: Math.floor(Date.now() / 1000), // Unix epoch
+			timestamp: Math.floor(Date.now() / 1000),
 			models: selectedModels
 		};
 
-		// A transcribed Bridge message already exists in the same history.
 		const existingUserMessage = history.messages[userMessageId];
 		if (existingUserMessage) userMessage = { ...existingUserMessage, files: userMessage.files };
 		history.messages[userMessageId] = userMessage;
 
-		// Append messageId to childrenIds of parent message
 		if (!existingUserMessage && history.currentId !== null) {
 			history.messages[history.currentId].childrenIds.push(userMessageId);
 		}
 
 		history.currentId = userMessageId;
 
-		// focus on chat input (skip during voice call to avoid triggering mobile keyboard)
 		if (!$showCallOverlay) {
 			messageInput?.focus({ preventScroll: true });
 		}
@@ -3819,8 +3623,6 @@ $: filteredAssignments = assignments.filter(
 			return { status: 'rejected' };
 		}
 
-		// Check if the assistant is still generating the main response
-		// (don't block on background tasks like title gen, follow-ups, tags)
 		const lastMessage = history.currentId ? history.messages[history.currentId] : null;
 		const isGenerating = bridgeRequest
 			? createMessagesList(history, bridgeRequest.userMessageId).some(
@@ -3831,25 +3633,21 @@ $: filteredAssignments = assignments.filter(
 		if (isGenerating) {
 			if (bridgeRequest) return { status: 'deferred' };
 			if ($settings?.enableMessageQueue ?? true) {
-				// Enqueue the request
 				const _files = structuredClone(files);
 				chatRequestQueues.update((q) => ({
 					...q,
 					[$chatId]: [...(q[$chatId] ?? []), { id: uuidv4(), prompt: userPrompt, files: _files }]
 				}));
-				// Clear input
 				messageInput?.setText('');
 				prompt = '';
 				files = [];
 				return { status: 'rejected' };
 			} else {
-				// Interrupt: stop current generation and proceed
 				await stopResponse();
 				await tick();
 			}
 		}
 
-		// Clear input and submit
 		messageInput?.setText('');
 		prompt = '';
 		const _files = structuredClone(files);
@@ -3882,7 +3680,6 @@ $: filteredAssignments = assignments.filter(
 		_history = structuredClone(_history);
 
 		const responseMessageIds: Record<PropertyKey, string> = {};
-		// If modelId is provided, use it, else use selected model
 		let selectedModelIds = modelId
 			? [modelId]
 			: atSelectedModel !== undefined
@@ -3892,11 +3689,6 @@ $: filteredAssignments = assignments.filter(
 			history.messages[parentId].models = [...selectedModelIds];
 		}
 
-		// Create response messages for each selected model
-		// Build message_ids list: [{model_id, message_id, modelIdx}, ...]
-		// Uses an array instead of a dict to support duplicate model IDs in side-by-side chat.
-		// modelIdx identifies each side-by-side column so the backend can persist it; without
-		// it, duplicate models collapse into one another when the chat is reloaded.
 		const messageIdsList: Array<{ model_id: string; message_id: string; modelIdx: number }> = [];
 		for (const [_modelIdx, modelId] of selectedModelIds.entries()) {
 			const model = $models.filter((m) => m.id === modelId).at(0);
@@ -3914,14 +3706,12 @@ $: filteredAssignments = assignments.filter(
 					model: model.id,
 					modelName: model.name ?? model.id,
 					modelIdx: modelIdx ? modelIdx : _modelIdx,
-					timestamp: Math.floor(Date.now() / 1000) // Unix epoch
+					timestamp: Math.floor(Date.now() / 1000)
 				};
 
-				// Add message to history and Set currentId to messageId
 				history.messages[responseMessageId] = responseMessage;
 				history.currentId = responseMessageId;
 
-				// Append messageId to childrenIds of parent message
 				if (parentId !== null && history.messages[parentId]) {
 					history.messages[parentId].childrenIds = [
 						...history.messages[parentId].childrenIds,
@@ -3939,7 +3729,6 @@ $: filteredAssignments = assignments.filter(
 		}
 		history = history;
 
-		// Empty embedded drafts create their backing chat only when the first message is sent.
 		if (!_chatId) {
 			if (embedded && onCreateEmbeddedChat) {
 				const createdChat = await onCreateEmbeddedChat();
@@ -3967,10 +3756,8 @@ $: filteredAssignments = assignments.filter(
 
 		await tick();
 
-		// Re-clone history so sendMessageSocket gets the response messages we just added
 		_history = structuredClone(history);
 
-		// Vision capability check
 		for (const mid of selectedModelIds) {
 			const model = $models.filter((m) => m.id === mid).at(0);
 			if (model) {
@@ -3994,7 +3781,6 @@ $: filteredAssignments = assignments.filter(
 			}
 		}
 
-		// Single request — backend fans out to all models
 		const primaryModelId = selectedModelIds[0];
 		const primaryModel = $models.filter((m) => m.id === primaryModelId).at(0);
 		const primaryResponseMessageId = messageIdsList[0]?.message_id;
@@ -4014,10 +3800,6 @@ $: filteredAssignments = assignments.filter(
 					primaryResponseMessageId,
 					_chatId,
 					{
-						// Always forward the message_ids list (not just for multi-model sends) so the
-						// backend persists each response's modelIdx — including single-column
-						// regenerations in a duplicate-model chat, which would otherwise lose their
-						// column identity and collapse on reload.
 						messageIdsList: messageIdsList.length > 0 ? messageIdsList : undefined,
 						regenerationPrompt
 					}
@@ -4097,7 +3879,6 @@ $: filteredAssignments = assignments.filter(
 			.filter((message) => message.files)
 			.flatMap((message) => message.files);
 
-		// Filter chatFiles to only include files that are in the chatMessageFiles
 		chatFiles = chatFiles.filter((item) => {
 			const fileExists = chatMessageFiles.some((messageFile) => messageFile.id === item.id);
 			return fileExists;
@@ -4111,7 +3892,6 @@ $: filteredAssignments = assignments.filter(
 					(item.type === 'file' && !isRasterImageContentType(item?.content_type))
 			)
 		);
-		// Remove duplicates
 		files = files.filter((item, index, array) => array.findIndex((i) => equal(i, item)) === index);
 
 		scrollToBottom();
@@ -4137,8 +3917,7 @@ $: filteredAssignments = assignments.filter(
 			params?.stream_response ??
 			$settings?.params?.stream_response ??
 			true;
-		// Always include system prompt — backend extracts it and prepends to DB messages.
-		// Only temp chats need conversation messages (persisted chats load from DB).
+
 		let messages: any[] = [
 			params?.system || $settings.system
 				? { role: 'system', content: `${params?.system || $settings?.system || ''}` }
@@ -4208,7 +3987,6 @@ $: filteredAssignments = assignments.filter(
 		for (const toolId of selectedToolIds) {
 			if (toolId.startsWith('direct_server:')) {
 				let serverId = toolId.replace('direct_server:', '');
-				// Check if serverId is a number
 				if (!isNaN(parseInt(serverId))) {
 					toolServerIds.push(parseInt(serverId));
 				} else {
@@ -4219,11 +3997,8 @@ $: filteredAssignments = assignments.filter(
 			}
 		}
 
-		// Menu-selected skills are sent as IDs; inline <$skillId|label> mentions stay
-		// in the message so the backend can inject their full content.
 		const skillIds = [...selectedSkillIds];
 
-		// Only send terminal_id if the model has terminal capability enabled
 		const terminalEnabled =
 			$config?.features?.enable_tool_servers && (model.info?.meta?.capabilities?.terminal ?? true);
 		const useChatVariablesFallback =
@@ -4235,25 +4010,16 @@ $: filteredAssignments = assignments.filter(
 				stream: stream,
 				model: model.id,
 
-				// RUBBER DUCK : Send selected class and assignment
-
-				...(selectedAssignmentId ?
-					{
-						// Send the selected class and assignment to the backend
-
-						rubber_duck_context: {
-							
-							// Send the class ID
-
-							class_id: selectedClassId,
-							
-							 // Send the assignment ID
-							assignment_id: selectedAssignmentId
+				// RUBBER DUCK: Include class and assignment context in request payload
+				...(selectedAssignmentId && selectedClassId
+					? {
+							rubber_duck_context: {
+								class_id: selectedClassId,
+								assignment_id: selectedAssignmentId
+							}
 						}
-					}
-					// if one value is missing. do not add the context.	
-					: {}
-				),
+					: {}),
+
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
 					...$settings?.params,
@@ -4280,7 +4046,6 @@ $: filteredAssignments = assignments.filter(
 							...($toolServers ?? []).filter(
 								(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
 							),
-							// Direct terminal servers — always included when enabled (not routed through selectedToolIds)
 							...(terminalEnabled
 								? ($terminalServers ?? [])
 										.filter((server) => !server.id)
@@ -4356,13 +4121,8 @@ $: filteredAssignments = assignments.filter(
 			if (res.error) {
 				await handleOpenAIError(res.error, responseMessage);
 			} else {
-				// Backend returns task_ids (multi-model) or task_id (single model)
 				onToolCallResolved(res);
 
-				// Backend returns chat_id for new chats — set store + URL.
-				// Only update if the user hasn't navigated to a different chat
-				// while the request was in flight (prevents overwriting $chatId
-				// and causing spurious toast notifications / state duplication).
 				if (res.chat_id && $chatId !== res.chat_id && $chatId === _chatId) {
 					chatRequestQueues.update((q) => {
 						if (!q[_chatId]?.length) return q;
@@ -4375,15 +4135,10 @@ $: filteredAssignments = assignments.filter(
 					});
 					await chatId.set(res.chat_id);
 					if (!$temporaryChatEnabled && !embedded) {
-						// Carry the picks made on the new-chat page over to this chat
 						saveDraft(getChatInputDraft(), res.chat_id, false);
 						window.history.replaceState(window.history.state, '', `/c/${res.chat_id}`);
 						await refreshChatList(localStorage.token);
 
-						// Persist chat-level params (system prompt, advanced
-						// params) that the backend doesn't receive in the
-						// chat completion request.  Files are now persisted
-						// by the backend at chat creation time.
 						if (Object.keys(params).length > 0) {
 							await updateChatById(localStorage.token, res.chat_id, {
 								params: params
@@ -4444,7 +4199,6 @@ $: filteredAssignments = assignments.filter(
 
 			taskIds = null;
 
-			// Set all response messages to done
 			if (responseMessage?.parentId && history.messages[responseMessage.parentId]) {
 				for (const messageId of history.messages[responseMessage.parentId].childrenIds) {
 					history.messages[messageId].done = true;
@@ -4480,7 +4234,7 @@ $: filteredAssignments = assignments.filter(
 			user: { id: $user?.id, name: $user?.name },
 			content: userPrompt,
 			models: selectedModels,
-			timestamp: Math.floor(Date.now() / 1000) // Unix epoch
+			timestamp: Math.floor(Date.now() / 1000)
 		};
 
 		if (parentId !== null) {
@@ -4503,8 +4257,6 @@ $: filteredAssignments = assignments.filter(
 	};
 
 	const regenerateResponse = async (message, suggestionPrompt = null) => {
-		console.log('regenerateResponse');
-
 		if (history.currentId) {
 			let userMessage = history.messages[message.parentId];
 
@@ -4526,7 +4278,6 @@ $: filteredAssignments = assignments.filter(
 					: {}),
 				...((userMessage?.models ?? [...selectedModels]).length > 1
 					? {
-							// If multiple models are selected, use the model from the message
 							modelId: message.model,
 							modelIdx: message.modelIdx
 						}
@@ -4536,7 +4287,6 @@ $: filteredAssignments = assignments.filter(
 	};
 
 	const continueResponse = async () => {
-		console.log('continueResponse');
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 
 		if (history.currentId && history.messages[history.currentId].done == true) {
@@ -4562,7 +4312,6 @@ $: filteredAssignments = assignments.filter(
 	};
 
 	const mergeResponses = async (messageId, responses, _chatId) => {
-		console.log('mergeResponses', messageId, responses);
 		const message = history.messages[messageId];
 		const mergedResponse = {
 			status: true,
@@ -4691,13 +4440,11 @@ $: filteredAssignments = assignments.filter(
 			console.error('[controls autosave]', err);
 			return null;
 		});
-		// Refresh the dedupe baseline so a later revert still saves.
 		if (res) chat = res;
 	};
 
 	const MAX_DRAFT_LENGTH = 5000;
 	let saveDraftTimeout: ReturnType<typeof setTimeout> | null = null;
-	// chatIdProp is empty for chats started from the home page (URL set via replaceState)
 	const getDraftChatId = () => chatIdProp || $chatId || null;
 
 	const getChatInputDraft = () => ({
@@ -4830,9 +4577,6 @@ $: filteredAssignments = assignments.filter(
 </script>
 
 <svelte:head>
-	<!-- LICENSE covers this Open WebUI browser-title identifier.
-	Do not alter, remove, obscure, or replace it except as LICENSE permits:
-	https://docs.openwebui.com/license. -->
 	<title>
 		{$settings.showChatTitleInTab !== false && $chatTitle
 			? `${$chatTitle.length > 30 ? `${$chatTitle.slice(0, 30)}...` : $chatTitle} / ${$WEBUI_NAME}`
@@ -5113,63 +4857,81 @@ $: filteredAssignments = assignments.filter(
 						/>
 					{/if}
 					<div id="chat-pane" class="flex flex-col flex-auto z-10 w-full @container overflow-auto">
-
-						<!-- Assignment Selection Bar -->
+						<!-- Assignment & Class Selection Bar (Issue #44 Freeze Logic) -->
 						<div
 							class="flex items-center justify-between px-4 py-2 border-b
-		       border-gray-200 dark:border-gray-800 bg-white/60
-		       dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
+							border-gray-200 dark:border-gray-800 bg-white/60
+							dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
+							{#if selectedClassId && selectedAssignmentId && createMessagesList(history, history.currentId).length > 0}
+								<!-- Frozen State: Show static labels once chat starts and both are selected -->
+								<div
+									class="flex items-center gap-6 text-xs sm:text-sm text-gray-900 dark:text-gray-100"
+								>
+									<div>
+										<span class="font-medium text-gray-500 dark:text-gray-400">Class:</span>
+										{classes.find((c) => c.id === selectedClassId)?.title ?? selectedClassId}
+									</div>
+									<div>
+										<span class="font-medium text-gray-500 dark:text-gray-400">Assignment:</span>
+										{assignments.find((a) => a.id === selectedAssignmentId)?.title ??
+											selectedAssignmentId}
+									</div>
+								</div>
+							{:else}
+								<!-- Interactive State: Show dropdowns before chat starts or if selection is partial -->
+								<div class="flex items-center gap-2 mb-2">
+									<label
+										for="class-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
+										Class:
+									</label>
+									<select
+										id="class-select"
+										bind:value={selectedClassId}
+										on:change={() => {
+											selectedAssignmentId = '';
+										}}
+										class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+										bg-gray-50 dark:bg-gray-800
+										border border-gray-300 dark:border-gray-700
+										text-gray-900 dark:text-gray-100"
+									>
+										<option value="">Select Class</option>
+										{#each classes as classItem}
+											<option value={classItem.id}>{classItem.title}</option>
+										{/each}
+									</select>
+								</div>
 
-
-
-<!-- RUBBER DUCK: CLASS SELECTION -->
-
-<div class="flex items-center gap-2 mb-2">
-    <label for="class-select" class="text-xs sm:text-sm">
-        Class:
-    </label>
-
-    <select
-        id="class-select"
-        bind:value={selectedClassId}
-        class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
-        bg-gray-50 dark:bg-gray-800
-        border border-gray-300 dark:border-gray-700
-        text-gray-900 dark:text-gray-100"
-    >
-        <option value="">Select Class</option>
-        {#each classes as classItem}
-            <option value={classItem.id}>
-                {classItem.title}
-            </option>
-        {/each}
-    </select>
-</div>
-
-							<label
-								for="assignment-select"
-
-								class="text-xs font-medium text-gray-500 dark:text-gray-400"
-							>
-								Assignment:
-							</label>
-							<select
-								id="assignment-select"
-								bind:value={selectedAssignmentId}
-								class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
-			       bg-gray-50 dark:bg-gray-800
-			       border border-gray-300 dark:border-gray-700
-			       text-gray-900 dark:text-gray-100
-			       focus:outline-none focus:ring-1 focus:ring-blue-500"
-							>
-
-								<option value="">Select Assignment</option>
-								{#each assignments as assignment}
-									<option value={assignment.id}>{assignment.title}</option>
-								{/each}
-							</select>
+								<div class="flex items-center gap-2 mb-2">
+									<label
+										for="assignment-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
+										Assignment:
+									</label>
+									<select
+										id="assignment-select"
+										bind:value={selectedAssignmentId}
+										disabled={!selectedClassId}
+										class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+										bg-gray-50 dark:bg-gray-800
+										border border-gray-300 dark:border-gray-700
+										text-gray-900 dark:text-gray-100
+										focus:outline-none focus:ring-1 focus:ring-blue-500
+										disabled:opacity-50"
+									>
+										<option value="">Select Assignment</option>
+										{#each filteredAssignments as assignment}
+											<option value={assignment.id}>{assignment.title}</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
 						</div>
+
 						{#if ($settings?.landingPageMode === 'chat' && !$selectedFolder) || createMessagesList(history, history.currentId).length > 0}
 							<div
 								class=" pb-2.5 flex flex-col justify-between w-full flex-auto overflow-auto h-0 max-w-full z-10 scrollbar-hidden"
@@ -5301,9 +5063,7 @@ $: filteredAssignments = assignments.filter(
 
 									<div
 										class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
-									>
-										<!-- {$i18n.t('LLMs can make mistakes. Verify important information.')} -->
-									</div>
+									></div>
 								</div>
 							{/if}
 						{:else if embedded}

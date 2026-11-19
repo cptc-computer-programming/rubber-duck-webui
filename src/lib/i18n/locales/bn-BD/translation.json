@@ -1518,7 +1518,6 @@
 	"LiteLLM": "LiteLLM",
 	"Live": "বর্তমানে ব্যবহৃত",
 	"llama.cpp": "llama.cpp",
-	"LLMs can make mistakes. Verify important information.": "LLM ভুল করতে পারে। গুরুত্বপূর্ণ তথ্য যাচাই করে নিন।",
 	"LM Studio": "LM Studio",
 	"Load content from these URLs?": "এই URL-গুলো থেকে বিষয়বস্তু লোড করবেন?",
 	"Load Model": "মডেল লোড করুন",
