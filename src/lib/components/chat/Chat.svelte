@@ -5161,6 +5161,10 @@ $: filteredAssignments = assignments.filter(
 							<select
 								id="assignment-select"
 								bind:value={selectedAssignmentId}
+								// TO STOP USER FROM SELECTING AN ASSIGNMENT BEFORE SELECTING A CLASS, DISABLE THE ASSIGNMENT DROPDOWN UNTIL A CLASS IS SELECTED
+								disabled={!selectedClassId}
+								
+
 								class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
 			       bg-gray-50 dark:bg-gray-800
 			       border border-gray-300 dark:border-gray-700
