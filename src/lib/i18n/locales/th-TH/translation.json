@@ -1505,7 +1505,6 @@
 	"LiteLLM": "LiteLLM",
 	"Live": "ใช้งานจริง",
 	"llama.cpp": "llama.cpp",
-	"LLMs can make mistakes. Verify important information.": "LLM อาจทำผิดพลาดได้ โปรดตรวจสอบข้อมูลสำคัญ",
 	"LM Studio": "LM Studio",
 	"Load content from these URLs?": "โหลดเนื้อหาจาก URL เหล่านี้หรือไม่?",
 	"Load Model": "โหลดโมเดล",
