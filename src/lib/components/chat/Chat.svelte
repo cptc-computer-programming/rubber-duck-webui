@@ -155,33 +155,42 @@
 	export let onCreateEmbeddedChat: (() => any | Promise<any>) | null = null;
 	export let onSelectEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
 	export let onDeleteEmbeddedChat: ((chatId: string) => void | Promise<void>) | null = null;
-	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null = null;
+	export let onEmbeddedChatTitle: ((chatId: string, title: string) => void | Promise<void>) | null =
+		null;
 
-	// Tracks active assignment context for current session.
+	// tracks active class and assignment context for current session.
+	export let selectedClassId = '';
 	export let selectedAssignmentId = '';
 
-	let classes = [{
-		id: 'cpw-152', title: 'Database Systems'
-	}, {
-		id: 'cpw-219', title: 'Web Development'
-	}, {
-		id: 'cpw-245', title: 'Data Structures'
-	}];
+	let classes = [
+		{
+			id: 'cpw-152',
+			title: 'Database Systems'
+		},
+		{
+			id: 'cpw-219',
+			title: 'Web Development'
+		},
+		{
+			id: 'cpw-245',
+			title: 'Data Structures'
+		}
+	];
 
 	// Temp assignment list
 	let assignments = [
-		// Database Systems - CPW 152
 		{ id: 'sql-joins', title: 'SQL Joins', classId: 'cpw-152' },
 		{ id: 'sql-queries', title: 'SQL Queries', classId: 'cpw-152' },
-
-		// Web Development - CPW 219
 		{ id: 'mvc-project', title: 'MVC Project', classId: 'cpw-219' },
 		{ id: 'model-binding', title: 'Model Binding', classId: 'cpw-219' },
-
-		// Data Structures - CPW 245
 		{ id: 'arrays', title: 'Arrays', classId: 'cpw-245' },
 		{ id: 'sorting', title: 'Sorting', classId: 'cpw-245' }
 	];
+
+	// Filter assignments based on selected class
+	$: filteredAssignments = assignments.filter(
+		(assignment) => assignment.classId === selectedClassId
+	);
 
 	let loading = true;
 	$: chatContainerId = embedded ? 'note-chat-container' : 'chat-container';
@@ -239,11 +248,11 @@
 	$: backgroundImage = embedded
 		? null
 		: ($selectedFolder as { meta?: { background_image_url?: string } } | null)?.meta
-			?.background_image_url ||
-		atSelectedModel?.info?.meta?.background_image_url ||
-		$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
-			?.background_image_url ||
-		($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
+				?.background_image_url ||
+			atSelectedModel?.info?.meta?.background_image_url ||
+			$models.find((model) => model.id === selectedModels[selectedModelIdx])?.info?.meta
+				?.background_image_url ||
+			($settings?.backgroundImageUrl ?? $config?.license_metadata?.background_image_url);
 
 	let atSelectedModel: Model | undefined;
 	let selectedModelIds: string[] = [];
@@ -498,14 +507,6 @@
 	// Chat Input
 	let prompt = '';
 
-	// RUBBER DUCK: Class and Assignment Selection
-	let selectedClassId = '';
-
-	// Filter assignments for the selected class
-	$: filteredAssignments = assignments.filter(
-		(assignment) => assignment.classId === selectedClassId
-	);
-
 	let chatFiles = [];
 	let files: any[] = [];
 	let params = {};
@@ -695,27 +696,27 @@
 	$: pendingAskUser = findPendingAskUser(history);
 	$: savedAskUserPrompt = pendingAskUser
 		? {
-			show: true,
-			questions: Array.isArray(pendingAskUser.args?.questions)
-				? pendingAskUser.args.questions
-				: [],
-			allowOther: pendingAskUser.args?.allow_other !== false,
-			timeoutMs: null,
-			onConfirm: (value) => {
-				void answerPendingAskUser(
-					pendingAskUser.message.id,
-					pendingAskUser.call.call_id || pendingAskUser.call.id,
-					value?.answers ?? {},
-					false
-				);
-			},
-			onCancel: () => {
-				void rejectPendingAskUser(
-					pendingAskUser.message.id,
-					pendingAskUser.call.call_id || pendingAskUser.call.id
-				);
+				show: true,
+				questions: Array.isArray(pendingAskUser.args?.questions)
+					? pendingAskUser.args.questions
+					: [],
+				allowOther: pendingAskUser.args?.allow_other !== false,
+				timeoutMs: null,
+				onConfirm: (value) => {
+					void answerPendingAskUser(
+						pendingAskUser.message.id,
+						pendingAskUser.call.call_id || pendingAskUser.call.id,
+						value?.answers ?? {},
+						false
+					);
+				},
+				onCancel: () => {
+					void rejectPendingAskUser(
+						pendingAskUser.message.id,
+						pendingAskUser.call.call_id || pendingAskUser.call.id
+					);
+				}
 			}
-		}
 		: null;
 
 	$: socketAskUserPrompt = ((interaction: BrowserInteraction | undefined) => ({
@@ -2123,9 +2124,9 @@
 				[$chatId]: (q[$chatId] ?? []).map((message) =>
 					(message.files ?? []).some((item) => item.itemId === file.itemId)
 						? {
-							...message,
-							files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
-						}
+								...message,
+								files: message.files.map((item) => (item.itemId === file.itemId ? file : item))
+							}
 						: message
 				)
 			}));
@@ -2187,9 +2188,9 @@
 		const autoTags = $settings?.autoTags ?? true;
 		const title = autoTitle
 			? await generateTitle(token, modelId, messages, _chatId).catch((error) => {
-				console.error('Could not generate voice chat title', error);
-				return null;
-			})
+					console.error('Could not generate voice chat title', error);
+					return null;
+				})
 			: null;
 		const savedChat = await getChatById(token, _chatId);
 		if (savedChat.title === initialTitle) {
@@ -2305,9 +2306,9 @@
 						const state = getBridgeTurnState(message);
 						const speech = !spoken
 							? (voice?.speech ?? [])
-								.map((item: any) => item.transcript)
-								.filter(Boolean)
-								.join('\n')
+									.map((item: any) => item.transcript)
+									.filter(Boolean)
+									.join('\n')
 							: '';
 						let content = visibleMessageText(message);
 						if (message.role === 'assistant') {
@@ -2422,7 +2423,7 @@
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
 							<${''}style>
 								body {
-									background-color: white;
+									background-color: white; /* Ensure the iframe has a white background */
 								}
 
 								${group.css}
@@ -2943,7 +2944,7 @@
 		try {
 			chatRequestQueues.update((q) => ({
 				...q,
-				[$chatId]: queue.filter((m) => m.id !== id)
+				[targetChatId]: queue.filter((m) => m.id !== id)
 			}));
 			await stopResponse(false);
 			await tick();
@@ -3625,8 +3626,8 @@
 		const lastMessage = history.currentId ? history.messages[history.currentId] : null;
 		const isGenerating = bridgeRequest
 			? createMessagesList(history, bridgeRequest.userMessageId).some(
-				(message) => message.role === 'assistant' && !message.done
-			)
+					(message) => message.role === 'assistant' && !message.done
+				)
 			: lastMessage && lastMessage.role === 'assistant' && !lastMessage.done;
 
 		if (isGenerating) {
@@ -4009,16 +4010,15 @@
 				stream: stream,
 				model: model.id,
 
-				// RUBBER DUCK: Include class and assignment context in the request payload
-				...(selectedAssignmentId ?
-						{
+				// RUBBER DUCK: Include class and assignment context in request payload
+				...(selectedAssignmentId && selectedClassId
+					? {
 							rubber_duck_context: {
 								class_id: selectedClassId,
 								assignment_id: selectedAssignmentId
 							}
 						}
-						: {}
-				),
+					: {}),
 
 				...(messages.length > 0 ? { messages } : {}),
 				params: {
@@ -4043,15 +4043,15 @@
 				terminal_id: terminalEnabled && $selectedTerminalId ? $selectedTerminalId : undefined,
 				tool_servers: $config?.features?.enable_tool_servers
 					? [
-						...($toolServers ?? []).filter(
-							(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
-						),
-						...(terminalEnabled
-							? ($terminalServers ?? [])
-								.filter((server) => !server.id)
-								.map((server) => ({ ...server, is_terminal: true }))
-							: [])
-					]
+							...($toolServers ?? []).filter(
+								(server, idx) => toolServerIds.includes(idx) || toolServerIds.includes(server?.id)
+							),
+							...(terminalEnabled
+								? ($terminalServers ?? [])
+										.filter((server) => !server.id)
+										.map((server) => ({ ...server, is_terminal: true }))
+								: [])
+						]
 					: [],
 				features: getFeatures(),
 				variables: {
@@ -4082,15 +4082,17 @@
 							(userMessage?.parentId ?? null) === null &&
 							createMessagesList(_history, responseMessageId).length === 2))
 						? {
-							title_generation: $settings?.title?.auto ?? true,
-							tags_generation: $settings?.autoTags ?? true
-						}
+								title_generation: $settings?.title?.auto ?? true,
+								tags_generation: $settings?.autoTags ?? true
+							}
 						: {}),
 					follow_up_generation: $settings?.autoFollowUps ?? true
 				}
 			},
 			`${WEBUI_BASE_URL}/api`
 		).catch(async (error) => {
+			console.log(error);
+
 			let errorMessage = error;
 			if (error?.error?.message) {
 				errorMessage = error.error.message;
@@ -4188,7 +4190,7 @@
 				});
 			} else {
 				for (const taskId of taskIds) {
-					await stopTask(localStorage.token, taskId).catch((error) => {
+					const res = await stopTask(localStorage.token, taskId).catch((error) => {
 						toast.error(`${error}`);
 						return null;
 					});
@@ -4270,15 +4272,15 @@
 			await sendMessage(history, userMessage.id, {
 				...(suggestionPrompt
 					? {
-						messages: createMessagesList(history, message.id),
-						regenerationPrompt: suggestionPrompt
-					}
+							messages: createMessagesList(history, message.id),
+							regenerationPrompt: suggestionPrompt
+						}
 					: {}),
 				...((userMessage?.models ?? [...selectedModels]).length > 1
 					? {
-						modelId: message.model,
-						modelIdx: message.modelIdx
-					}
+							modelId: message.model,
+							modelIdx: message.modelIdx
+						}
 					: {})
 			});
 		}
@@ -4334,7 +4336,7 @@
 					Boolean($settings?.splitLargeChunks ?? false)
 				);
 				for await (const update of textStream) {
-					const { value, done, error } = update;
+					const { value, done, sources, error, usage } = update;
 					if (error || done) {
 						generating = false;
 						generationController = null;
@@ -4352,6 +4354,8 @@
 				}
 
 				await saveChatHandler(_chatId, history);
+			} else {
+				console.error(res);
 			}
 		} catch (e) {
 			console.error(e);
@@ -4728,10 +4732,10 @@
 			<div class="text-sm text-gray-500">
 				<div class="font-medium break-all">{interaction.data.tool_call.name}</div>
 				<pre class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify(
-					interaction.data.tool_call.arguments,
-					null,
-					2
-				)}</pre>
+						interaction.data.tool_call.arguments,
+						null,
+						2
+					)}</pre>
 			</div>
 		</EventConfirmDialog>
 	{/key}
@@ -4853,68 +4857,79 @@
 						/>
 					{/if}
 					<div id="chat-pane" class="flex flex-col flex-auto z-10 w-full @container overflow-auto">
-
-						<!-- Assignment Selection Bar -->
+						<!-- Assignment & Class Selection Bar (Issue #44 Freeze Logic) -->
 						<div
 							class="flex items-center justify-between px-4 py-2 border-b
 							border-gray-200 dark:border-gray-800 bg-white/60
 							dark:bg-gray-900/60 backdrop-blur z-20 mt-14 sm:mt-16"
 						>
-							<!-- RUBBER DUCK: CLASS SELECTION -->
-							<div class="flex items-center gap-2 mb-2">
-								<label for="class-select" class="text-xs sm:text-sm">
-									Class:
-								</label>
+							{#if selectedClassId && selectedAssignmentId && createMessagesList(history, history.currentId).length > 0}
+								<!-- Frozen State: Show static labels once chat starts and both are selected -->
+								<div
+									class="flex items-center gap-6 text-xs sm:text-sm text-gray-900 dark:text-gray-100"
+								>
+									<div>
+										<span class="font-medium text-gray-500 dark:text-gray-400">Class:</span>
+										{classes.find((c) => c.id === selectedClassId)?.title ?? selectedClassId}
+									</div>
+									<div>
+										<span class="font-medium text-gray-500 dark:text-gray-400">Assignment:</span>
+										{assignments.find((a) => a.id === selectedAssignmentId)?.title ??
+											selectedAssignmentId}
+									</div>
+								</div>
+							{:else}
+								<!-- Interactive State: Show dropdowns before chat starts or if selection is partial -->
+								<div class="flex items-center gap-2 mb-2">
+									<label
+										for="class-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
+										Class:
+									</label>
+									<select
+										id="class-select"
+										bind:value={selectedClassId}
+										on:change={() => {
+											selectedAssignmentId = '';
+										}}
+										class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+										bg-gray-50 dark:bg-gray-800
+										border border-gray-300 dark:border-gray-700
+										text-gray-900 dark:text-gray-100"
+									>
+										<option value="">Select Class</option>
+										{#each classes as classItem}
+											<option value={classItem.id}>{classItem.title}</option>
+										{/each}
+									</select>
+								</div>
 
-								<select
-									id="class-select"
-									bind:value={selectedClassId}
-									on:change={() => {
-										// Clear assignment selection when switching classes
-										selectedAssignmentId = '';
-									}}
-									class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
-									bg-gray-50 dark:bg-gray-800
-									border border-gray-300 dark:border-gray-700
-									text-gray-900 dark:text-gray-100"
-								>
-									<option value="">Select Class</option>
-									{#each classes as classItem}
-										<option value={classItem.id}>
-											{classItem.title}
-										</option>
-									{/each}
-								</select>
-							</div>
-
-							<!-- RUBBER DUCK: ASSIGNMENT SELECTION -->
-							<div class="flex items-center gap-2 mb-2">
-								<label
-									for="assignment-select"
-									class="text-xs font-medium text-gray-500 dark:text-gray-400"
-								>
-									Assignment:
-								</label>
-								<select
-									id="assignment-select"
-									bind:value={selectedAssignmentId}
-									disabled={!selectedClassId}
-									class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
-									bg-gray-50 dark:bg-gray-800
-									border border-gray-300 dark:border-gray-700
-									text-gray-900 dark:text-gray-100
-									focus:outline-none focus:ring-1 focus:ring-blue-500
-									disabled:opacity-50"
-								>
-									<option value="">Select Assignment</option>
-									<!-- Use filteredAssignments instead of all assignments -->
-									{#each filteredAssignments as assignment}
-										<option value={assignment.id}>
-											{assignment.title}
-										</option>
-									{/each}
-								</select>
-							</div>
+								<div class="flex items-center gap-2 mb-2">
+									<label
+										for="assignment-select"
+										class="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400"
+									>
+										Assignment:
+									</label>
+									<select
+										id="assignment-select"
+										bind:value={selectedAssignmentId}
+										disabled={!selectedClassId}
+										class="text-xs sm:text-sm rounded-lg px-2.5 py-1.5
+										bg-gray-50 dark:bg-gray-800
+										border border-gray-300 dark:border-gray-700
+										text-gray-900 dark:text-gray-100
+										focus:outline-none focus:ring-1 focus:ring-blue-500
+										disabled:opacity-50"
+									>
+										<option value="">Select Assignment</option>
+										{#each filteredAssignments as assignment}
+											<option value={assignment.id}>{assignment.title}</option>
+										{/each}
+									</select>
+								</div>
+							{/if}
 						</div>
 
 						{#if ($settings?.landingPageMode === 'chat' && !$selectedFolder) || createMessagesList(history, history.currentId).length > 0}
@@ -5048,8 +5063,7 @@
 
 									<div
 										class="absolute bottom-1 text-xs text-gray-500 text-center line-clamp-1 right-0 left-0"
-									>
-									</div>
+									></div>
 								</div>
 							{/if}
 						{:else if embedded}
@@ -5235,8 +5249,8 @@
 </div>
 
 <style>
-    ::-webkit-scrollbar {
-        height: 0.5rem;
-        width: 0.5rem;
-    }
+	::-webkit-scrollbar {
+		height: 0.5rem;
+		width: 0.5rem;
+	}
 </style>
