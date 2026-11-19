@@ -10,6 +10,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from pathlib import Path
 from uuid import uuid4
 
 import aiohttp
@@ -1141,36 +1142,11 @@ async def _set_direct_model(request: Request, model_item: dict, user) -> None:
     request.state.direct = True
     request.state.model = model_item
 
-# Insurance check to protect against file errors, empty assignment files, path traversal, and incorrect names
-async def _load_assignment_markdown(assignment_id: str) -> str:
-    # Restrict IDs to filenames so user input cannot escape the assignments directory.
+def _load_assignment_markdown(assignment_id: str) -> str:
     if not isinstance(assignment_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', assignment_id):
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
 
-    # Resolve both paths before comparing them to protect against traversal or symlinks.
-    # Something is wrong with how the path is being built
-    assignments_dir = ('assignments').resolve()
-    assignment_path = (assignments / f'{assignment_id}.md').resolve()
-    print("DEBUG kkkk: Assignment path: ", assignment_path)
-    if assignment_path.parent != assignments_dir:
-        raise HTTPException(status_code=400, detail='Invalid assignment ID.')
-
-    try:
-        # Keep file I/O off the event loop while loading the readable assignment source.
-        content = await asyncio.to_thread(assignment_path.read_text, encoding='utf-8')
-    except FileNotFoundError:
-        raise HTTPException(
-            status_code=404,
-            detail=f'Assignment file not found: {assignment_id}.md',
-        ) from None
-    except OSError as e:
-        log.exception('Failed to read assignment file %s', assignment_path)
-        raise HTTPException(status_code=500, detail='Failed to read assignment file.') from e
-
-    if not content.strip():
-        raise HTTPException(status_code=422, detail=f'Assignment file is empty: {assignment_id}.md')
-
-    return content.strip()
+    return Path(f'assignments/{assignment_id}.md').read_text(encoding='utf-8')
 
 
 @app.post('/api/chat/completions')
@@ -1416,7 +1392,7 @@ async def chat_completion(
         # choose a specific persona and update the instructions sent to Ollama.
         if class_id and assignment_id:
             # Load the assignment only when its class context is also available.
-            assignment_content = await _load_assignment_markdown(assignment_id)
+            assignment_content = _load_assignment_markdown(assignment_id)
             
             # Put the class context and assignment requirements in explicit sections for the model.
             assignment_prompt = (
