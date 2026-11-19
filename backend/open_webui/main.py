@@ -5,10 +5,12 @@ import copy
 import logging
 import mimetypes
 import os
+import re
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from pathlib import Path
 from uuid import uuid4
 
 import aiohttp
@@ -1140,6 +1142,13 @@ async def _set_direct_model(request: Request, model_item: dict, user) -> None:
     request.state.direct = True
     request.state.model = model_item
 
+def _load_assignment_markdown(assignment_id: str) -> str:
+    if not isinstance(assignment_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', assignment_id):
+        raise HTTPException(status_code=400, detail='Invalid assignment ID.')
+    
+    assignment_path = Path('assignments') / f'{assignment_id}.md'
+    return assignment_path.read_text(encoding='utf-8')
+
 
 @app.post('/api/chat/completions')
 @app.post('/api/v1/chat/completions')  # Experimental: Compatibility with OpenAI API
@@ -1148,6 +1157,15 @@ async def chat_completion(
     form_data: dict,
     user=Depends(get_verified_user),
 ):
+    print("DEBUG kkkk form data", form_data)
+    rubber_duck_context = form_data.pop('rubber_duck_context', {}) or {}
+    context_block = form_data.pop('context', {}) or {}
+    class_id = rubber_duck_context.get('class_id')
+    assignment_id = rubber_duck_context.get('assignment_id')
+
+    print("DEBUG kkkk class and assignment id at API call", class_id, assignment_id)
+
+
     if not request.app.state.MODELS:
         await get_all_models(request, user=user)
 
@@ -1337,6 +1355,10 @@ async def chat_completion(
             'features': form_data.get('features', {}),
             'variables': form_data.get('variables', {}),
             'chat_variables': chat_variables,
+            #added expected fields to metadata dictionary
+            'class_id': class_id,
+            'assignment_id': assignment_id,
+
             # Later requests rebuild generated instructions from this original chat context.
             'chat_context': {
                 **copy.deepcopy(getattr(request.state, 'chat_context', None) or {}),
@@ -1345,6 +1367,9 @@ async def chat_completion(
                 ),
                 'params': {'system': request_params['system']} if 'system' in request_params else {},
                 'chat_variables': copy.deepcopy(chat_variables),
+                #adds the class and assignment id to the chat history
+                'class_id': class_id,
+                'assignment_id': assignment_id,
             },
             'model': model,
             'direct': model_item.get('direct', False),
@@ -1361,6 +1386,37 @@ async def chat_completion(
                 'model_controls': model_controls,
             },
         }
+        print("DEBUG kkkk meta dictionary", metadata)
+        #Start Interceptor Code
+        print("DEBUG kkkk class and assignment id", class_id, assignment_id)
+        # If both a classroom and an assignment identifier are provided,
+        # choose a specific persona and update the instructions sent to Ollama.
+        if class_id and assignment_id:
+            # Load the assignment only when its class context is also available.
+            assignment_content = _load_assignment_markdown(assignment_id)
+            
+            # Put the class context and assignment requirements in explicit sections for the model.
+            assignment_prompt = (
+                f'You are a specialized learning assistant for Class {class_id}. '
+                f'Use the following assignment information when helping the student with Assignment {assignment_id}. '
+                'Treat it as the source of truth for the assignment requirements.\n\n'
+                f'<assignment-information>\n{assignment_content}\n</assignment-information>'
+            )
+
+            # Ensure the system configuration list contains a place for system instructions.
+            if 'params' not in form_data:
+                form_data['params'] = {}
+                
+            # Read any default system prompt that already exists in the request params.
+            existing_system_prompt = form_data['params'].get('system', '')
+
+            # or assign it directly if no prior prompt exists.
+            if existing_system_prompt:
+                form_data['params']['system'] = f'{assignment_prompt}\n{existing_system_prompt}'
+            else:
+                form_data['params']['system'] = assignment_prompt
+
+        #End Interceptor Code
 
         if is_new_chat:
             metadata['chat_id'] = str(uuid4())
