@@ -5165,7 +5165,7 @@ $: filteredAssignments = assignments.filter(
 							>
 
 								<option value="">Select Assignment</option>
-								{#each assignments as assignment}
+								{#each filteredAssignments as assignment}
 									<option value={assignment.id}>{assignment.title}</option>
 								{/each}
 							</select>
