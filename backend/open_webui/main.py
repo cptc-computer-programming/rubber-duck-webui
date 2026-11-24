@@ -258,7 +258,7 @@ from open_webui.utils.middleware import (
     process_chat_response,
     publish_chat_failed_event,
 )
-from open_webui.utils.misc import get_response_error_detail, merge_model_params
+from open_webui.utils.misc import add_or_update_system_message, get_response_error_detail, merge_model_params
 from open_webui.utils.model_ids import strip_provider_model_prefix
 from open_webui.utils.models import (
     check_model_access,
@@ -1311,6 +1311,23 @@ async def chat_completion(
 
         chat_variables = normalize_chat_variables(chat_variables)
 
+        # The saved chat is the source of truth, so follow-ups keep the assignment even if the client omits it.
+        saved_context = ((existing_chat.meta or {}).get('rubber_duck') or {}) if existing_chat else {}
+        class_id = saved_context.get('class_id') or class_id
+        assignment_id = saved_context.get('assignment_id') or assignment_id
+
+        # Inject the assignment as a system message (params['system'] never reaches the model).
+        # It is rebuilt every request and not stored in history, so it never duplicates.
+        if class_id and assignment_id:
+            assignment_content = _load_assignment_markdown(assignment_id)
+            assignment_prompt = (
+                f'You are a specialized learning assistant for Class {class_id}. '
+                f'Use the following assignment information when helping the student with Assignment {assignment_id}. '
+                'Treat it as the source of truth for the assignment requirements.\n\n'
+                f'<assignment-information>\n{assignment_content}\n</assignment-information>'
+            )
+            form_data['messages'] = add_or_update_system_message(assignment_prompt, form_data.get('messages') or [])
+
         # Drop tool_servers if caller lacks features.direct_tool_servers —
         # mirrors the storage-side strip in user/settings/update.
         tool_servers = form_data.pop('tool_servers', None)
@@ -1390,38 +1407,6 @@ async def chat_completion(
                 'model_controls': model_controls,
             },
         }
-        print("DEBUG kkkk meta dictionary", metadata)
-        #Start Interceptor Code
-        print("DEBUG kkkk class and assignment id", class_id, assignment_id)
-        # If both a classroom and an assignment identifier are provided,
-        # choose a specific persona and update the instructions sent to Ollama.
-        if class_id and assignment_id:
-            # Load the assignment only when its class context is also available.
-            assignment_content = _load_assignment_markdown(assignment_id)
-            
-            # Put the class context and assignment requirements in explicit sections for the model.
-            assignment_prompt = (
-                f'You are a specialized learning assistant for Class {class_id}. '
-                f'Use the following assignment information when helping the student with Assignment {assignment_id}. '
-                'Treat it as the source of truth for the assignment requirements.\n\n'
-                f'<assignment-information>\n{assignment_content}\n</assignment-information>'
-            )
-
-            # Ensure the system configuration list contains a place for system instructions.
-            if 'params' not in form_data:
-                form_data['params'] = {}
-                
-            # Read any default system prompt that already exists in the request params.
-            existing_system_prompt = form_data['params'].get('system', '')
-
-            # or assign it directly if no prior prompt exists.
-            if existing_system_prompt:
-                form_data['params']['system'] = f'{assignment_prompt}\n{existing_system_prompt}'
-            else:
-                form_data['params']['system'] = assignment_prompt
-
-        #End Interceptor Code
-
         if is_new_chat:
             metadata['chat_id'] = str(uuid4())
 
@@ -1542,6 +1527,9 @@ async def chat_completion(
                             variables=chat_variables,
                             folder_id=metadata.get('folder_id'),
                         ),
+                        internal_meta={'rubber_duck': {'class_id': class_id, 'assignment_id': assignment_id}}
+                        if class_id and assignment_id
+                        else None,
                     )
                     await publish_event(
                         request,
