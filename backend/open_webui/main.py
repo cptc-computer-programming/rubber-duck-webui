@@ -1145,8 +1145,12 @@ async def _set_direct_model(request: Request, model_item: dict, user) -> None:
 def _load_assignment_markdown(assignment_id: str) -> str:
     if not isinstance(assignment_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', assignment_id):
         raise HTTPException(status_code=400, detail='Invalid assignment ID.')
-    
-    assignment_path = Path('assignments') / f'{assignment_id}.md'
+
+    # Figure out why it's not reading the path correctly. Might have to appened to the root at the beginning for it to find the file
+    assignment_dir = Path(__file__).resolve().parent / 'assignments' 
+    assignment_path = assignment_dir / f'{assignment_id}.md'
+    if not assignment_path.is_file():
+        raise HTTPException(status_code=404, detail=f'Assignment {assignment_id} not found.')
     return assignment_path.read_text(encoding='utf-8')
 
 
