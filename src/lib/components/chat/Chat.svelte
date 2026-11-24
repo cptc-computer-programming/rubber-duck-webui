@@ -3765,6 +3765,14 @@ $: filteredAssignments = assignments.filter(
 			toast.error($i18n.t('Please enter a prompt'));
 			return { status: 'rejected' };
 		}
+
+	
+		//REQUIRE CLASS AND ASSIGNMENT BEFORE STATING A CHAT 
+		
+if (!selectedClassId || !selectedAssignmentId) {
+    toast.error($i18n.t('Please select a class and an assignment'));
+    return { status: 'rejected' };
+}
 		if (selectedModels.includes('')) {
 			toast.error($i18n.t('Model not selected'));
 			return { status: 'rejected' };
